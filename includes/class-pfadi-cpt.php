@@ -4,6 +4,7 @@ class Pfadi_CPT {
 
 	public function register_cpt() {
 		$slug = get_option( 'pfadi_cpt_slug', 'activity' );
+		$announcement_slug = get_option( 'pfadi_announcement_slug', 'mitteilung' );
 
 		$labels = array(
 			'name'                  => _x( 'Aktivitäten', 'Post Type General Name', 'wp-pfadi-manager' ),
@@ -80,13 +81,14 @@ class Pfadi_CPT {
 			'public'                => true,
 			'publicly_queryable'    => true,
 			'show_ui'               => true,
-			'show_in_menu'          => 'pfadi_activities',
+			'show_in_menu'          => true,
 			'query_var'             => true,
-			'rewrite'               => array( 'slug' => 'mitteilung' ),
+			'rewrite'               => array( 'slug' => $announcement_slug ),
 			'capability_type'       => 'post',
 			'has_archive'           => true,
 			'hierarchical'          => false,
-			'menu_position'         => null,
+			'menu_position'         => 6,
+			'menu_icon'             => 'dashicons-megaphone',
 			'supports'              => array( 'title', 'editor' ),
 			'show_in_rest'          => false,
 		);

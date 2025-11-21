@@ -3,7 +3,7 @@ Contributors: schlingel
 Tags: pfadi, activities, manager, scout
 Requires at least: 6.0
 Tested up to: 6.4
-Stable tag: 1.1.0
+Stable tag: 1.1.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -30,6 +30,13 @@ Features:
 3. Konfiguriere die Einstellungen unter 'Pfadi Aktivitäten' -> 'Konfiguration'.
 
 == Changelog ==
+
+= 1.1.1 =
+*   NEU: "Mitteilungen" als eigener Menüpunkt.
+*   NEU: Konfigurierbarer URL-Slug für Mitteilungen.
+*   NEU: Logging für E-Mail Versand (Debug).
+*   FIX: Barrierefreiheit im Abo-Formular.
+*   FIX: Filter-Logik für "Abteilung" (zeigt alle).
 
 = 1.1.0 =
 *   NEU: AJAX-basierte Filter-Tabs für Aktivitäten.

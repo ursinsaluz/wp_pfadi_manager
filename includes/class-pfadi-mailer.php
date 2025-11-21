@@ -40,14 +40,19 @@ class Pfadi_Mailer {
 	public function send_newsletter_by_id( $post_id ) {
 		$post = get_post( $post_id );
 		if ( $post ) {
+			Pfadi_Logger::log( "Triggering newsletter for post ID: $post_id" );
 			$this->send_newsletter( $post );
+		} else {
+			Pfadi_Logger::log( "Failed to trigger newsletter: Post ID $post_id not found", 'error' );
 		}
 	}
 
 	private function send_newsletter( $post ) {
+		Pfadi_Logger::log( "Starting newsletter process for post: {$post->post_title} (ID: {$post->ID})" );
 		$units = wp_get_post_terms( $post->ID, 'activity_unit', array( 'fields' => 'ids' ) );
 		
 		if ( empty( $units ) && ! is_wp_error( $units ) ) {
+			Pfadi_Logger::log( "No units assigned to post ID: {$post->ID}. Aborting." );
 			return;
 		}
 
@@ -87,8 +92,11 @@ class Pfadi_Mailer {
 		$recipients = array_unique( $recipients );
 
 		if ( empty( $recipients ) ) {
+			Pfadi_Logger::log( "No recipients found for post ID: {$post->ID}." );
 			return;
 		}
+
+		Pfadi_Logger::log( "Found " . count( $recipients ) . " recipients for post ID: {$post->ID}." );
 
 		$subject_template = get_option( 'pfadi_mail_subject', 'Neue Pfadi-Aktivität: {title}' );
 		if ( 'announcement' === $post->post_type ) {
@@ -99,7 +107,12 @@ class Pfadi_Mailer {
 		$headers = array( 'Content-Type: text/html; charset=UTF-8' );
 
 		foreach ( $recipients as $email ) {
-			wp_mail( $email, $subject, $message, $headers );
+			$sent = wp_mail( $email, $subject, $message, $headers );
+			if ( $sent ) {
+				Pfadi_Logger::log( "Sent newsletter to $email" );
+			} else {
+				Pfadi_Logger::log( "Failed to send newsletter to $email", 'error' );
+			}
 		}
 	}
 

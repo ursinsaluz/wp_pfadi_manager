@@ -14,6 +14,7 @@ class Pfadi_Loader {
 	private function load_dependencies() {
 		require_once PFADI_MANAGER_PATH . 'includes/class-pfadi-cpt.php';
 		require_once PFADI_MANAGER_PATH . 'includes/class-pfadi-db.php';
+		require_once PFADI_MANAGER_PATH . 'includes/class-pfadi-logger.php';
 		require_once PFADI_MANAGER_PATH . 'includes/class-pfadi-settings.php';
 		require_once PFADI_MANAGER_PATH . 'includes/class-pfadi-metaboxes.php';
 		require_once PFADI_MANAGER_PATH . 'includes/class-pfadi-frontend.php';

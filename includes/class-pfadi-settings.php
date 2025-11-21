@@ -38,10 +38,18 @@ class Pfadi_Settings {
 
 		add_settings_field(
 			'pfadi_cpt_slug',
-			'URL Slug für Aktivitäten',
+			'Aktivitäten Slug (URL)',
 			array( $this, 'cpt_slug_field_html' ),
 			'pfadi_settings',
-			'pfadi_section_general'
+			'pfadi_general_section'
+		);
+
+		add_settings_field(
+			'pfadi_announcement_slug',
+			'Mitteilungen Slug (URL)',
+			array( $this, 'announcement_slug_field_html' ),
+			'pfadi_settings',
+			'pfadi_general_section'
 		);
 
 		// Email Settings
@@ -157,6 +165,14 @@ class Pfadi_Settings {
 		?>
 		<input type="text" name="pfadi_cpt_slug" value="<?php echo esc_attr( $slug ); ?>">
 		<p class="description">Standard: activity. Ändern Sie dies nur, wenn Sie wissen, was Sie tun. Permalinks werden automatisch aktualisiert.</p>
+		<?php
+	}
+
+	public function announcement_slug_field_html() {
+		$slug = get_option( 'pfadi_announcement_slug', 'mitteilung' );
+		?>
+		<input type="text" name="pfadi_announcement_slug" value="<?php echo esc_attr( $slug ); ?>">
+		<p class="description">Standard: mitteilung. Ändern Sie dies nur, wenn Sie wissen, was Sie tun. Permalinks werden automatisch aktualisiert.</p>
 		<?php
 	}
 

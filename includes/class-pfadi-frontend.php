@@ -39,8 +39,9 @@ class Pfadi_Frontend {
 		?>
 		<div class="pfadi-board">
 			<ul class="pfadi-tabs">
-				<li><a href="#" data-unit="" class="<?php echo empty( $selected_unit ) ? 'active' : ''; ?>">Alle Stufen</a></li>
+				<li><a href="#" data-unit="" class="<?php echo ( empty( $selected_unit ) || 'abteilung' === $selected_unit ) ? 'active' : ''; ?>">Abteilung</a></li>
 				<?php foreach ( $units as $unit ) : ?>
+					<?php if ( 'abteilung' === $unit->slug ) { continue; } ?>
 					<li>
 						<a href="#" data-unit="<?php echo esc_attr( $unit->slug ); ?>" class="<?php echo $selected_unit === $unit->slug ? 'active' : ''; ?>">
 							<?php echo esc_html( $unit->name ); ?>
@@ -67,7 +68,7 @@ class Pfadi_Frontend {
 					),
 				);
 
-				if ( ! empty( $selected_unit ) ) {
+				if ( ! empty( $selected_unit ) && 'abteilung' !== $selected_unit ) {
 					$args['tax_query'] = array(
 						array(
 							'taxonomy' => 'activity_unit',
@@ -155,11 +156,14 @@ class Pfadi_Frontend {
 			<div id="pfadi-subscribe-message"></div>
 			<form method="post" id="pfadi-subscribe-form">
 				<p>
-					<label>E-Mail Adresse:</label>
-					<input type="email" name="pfadi_email" required>
+				<p>
+					<label>
+						E-Mail Adresse:
+						<input type="email" name="pfadi_email" required>
+					</label>
 				</p>
 				<p>
-					<label>Stufen wählen:</label><br>
+					<strong>Stufen wählen:</strong><br>
 					<?php foreach ( $units as $unit ) : ?>
 						<label>
 							<input type="checkbox" name="pfadi_units[]" value="<?php echo esc_attr( $unit->term_id ); ?>">
@@ -258,7 +262,10 @@ class Pfadi_Frontend {
 		$email = sanitize_email( $_POST['pfadi_email'] );
 		$units = isset( $_POST['pfadi_units'] ) ? array_map( 'intval', $_POST['pfadi_units'] ) : array();
 
+		Pfadi_Logger::log( "Subscription attempt for email: $email with units: " . implode( ',', $units ) );
+
 		if ( ! is_email( $email ) ) {
+			Pfadi_Logger::log( "Invalid email: $email", 'error' );
 			wp_send_json_error( array( 'message' => 'Ungültige E-Mail Adresse.' ) );
 		}
 
@@ -300,9 +307,14 @@ class Pfadi_Frontend {
 		$message = get_option( 'pfadi_confirm_message', 'Bitte bestätigen Sie Ihr Abo: {link}' );
 		$message = str_replace( '{link}', $confirm_link, $message );
 
-		if ( wp_mail( $email, $subject, $message ) ) {
+		Pfadi_Logger::log( "Sending confirmation email to $email" );
+		$sent = wp_mail( $email, $subject, $message );
+
+		if ( $sent ) {
+			Pfadi_Logger::log( "Confirmation email sent successfully to $email" );
 			wp_send_json_success( array( 'message' => 'Du hast eine Email zur Bestätigung deiner Emailadresse erhalten.' ) );
 		} else {
+			Pfadi_Logger::log( "Failed to send confirmation email to $email", 'error' );
 			wp_send_json_error( array( 'message' => 'Aktuell funktioniert es nicht, probiere es später nocheinmal oder informiere den Administrator: admin@alvier.ch.' ) );
 		}
 	}
@@ -332,7 +344,7 @@ class Pfadi_Frontend {
 			),
 		);
 
-		if ( ! empty( $unit_slug ) ) {
+		if ( ! empty( $unit_slug ) && 'abteilung' !== $unit_slug ) {
 			$args['tax_query'] = array(
 				array(
 					'taxonomy' => 'activity_unit',
