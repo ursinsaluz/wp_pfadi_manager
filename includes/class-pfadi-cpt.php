@@ -3,6 +3,8 @@
 class Pfadi_CPT {
 
 	public function register_cpt() {
+		$slug = get_option( 'pfadi_cpt_slug', 'activity' );
+
 		$labels = array(
 			'name'                  => _x( 'Aktivitäten', 'Post Type General Name', 'wp-pfadi-manager' ),
 			'singular_name'         => _x( 'Aktivität', 'Post Type Singular Name', 'wp-pfadi-manager' ),
@@ -52,8 +54,52 @@ class Pfadi_CPT {
 			'publicly_queryable'    => true,
 			'capability_type'       => 'post',
 			'show_in_rest'          => false, // Disable Block Editor
+			'rewrite'               => array( 'slug' => $slug ),
 		);
 		register_post_type( 'activity', $args );
+
+		// Register Announcement CPT
+		$labels_announcement = array(
+			'name'                  => 'Mitteilungen',
+			'singular_name'         => 'Mitteilung',
+			'menu_name'             => 'Mitteilungen',
+			'name_admin_bar'        => 'Mitteilung',
+			'add_new'               => 'Erstellen',
+			'add_new_item'          => 'Neue Mitteilung erstellen',
+			'new_item'              => 'Neue Mitteilung',
+			'edit_item'             => 'Mitteilung bearbeiten',
+			'view_item'             => 'Mitteilung ansehen',
+			'all_items'             => 'Alle Mitteilungen',
+			'search_items'          => 'Mitteilungen suchen',
+			'not_found'             => 'Keine Mitteilungen gefunden.',
+			'not_found_in_trash'    => 'Keine Mitteilungen im Papierkorb gefunden.',
+		);
+
+		$args_announcement = array(
+			'labels'                => $labels_announcement,
+			'public'                => true,
+			'publicly_queryable'    => true,
+			'show_ui'               => true,
+			'show_in_menu'          => 'pfadi_activities',
+			'query_var'             => true,
+			'rewrite'               => array( 'slug' => 'mitteilung' ),
+			'capability_type'       => 'post',
+			'has_archive'           => true,
+			'hierarchical'          => false,
+			'menu_position'         => null,
+			'supports'              => array( 'title', 'editor' ),
+			'show_in_rest'          => false,
+		);
+
+		register_post_type( 'announcement', $args_announcement );
+		
+		// Register Taxonomy for Units (shared)
+		register_taxonomy_for_object_type( 'activity_unit', 'announcement' );
+
+		if ( get_option( 'pfadi_flush_rewrite_rules' ) ) {
+			flush_rewrite_rules();
+			delete_option( 'pfadi_flush_rewrite_rules' );
+		}
 	}
 
 	public function register_taxonomy() {

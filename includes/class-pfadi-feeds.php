@@ -19,7 +19,7 @@ class Pfadi_Feeds {
 
 	public function inject_rss_content( $content ) {
 		global $post;
-		if ( 'activity' !== $post->post_type ) {
+		if ( 'activity' !== $post->post_type && 'announcement' !== $post->post_type ) {
 			return $content;
 		}
 
@@ -59,7 +59,7 @@ class Pfadi_Feeds {
 			}
 
 			$args = array(
-				'post_type'      => 'activity',
+				'post_type'      => array( 'activity', 'announcement' ),
 				'posts_per_page' => -1,
 				'tax_query'      => array(
 					array(
@@ -102,7 +102,12 @@ class Pfadi_Feeds {
 				$dtend = get_gmt_from_date( date( 'Y-m-d H:i:s', strtotime( $end ) ), 'Ymd\THis\Z' );
 				$now = gmdate( 'Ymd\THis\Z' );
 
-				$description = "Mitnehmen: $bring\n\nBesonderes: $special\n\nLeitung: $leaders";
+				$description = '';
+				if ( 'activity' === get_post_type( $id ) ) {
+					$description = "Mitnehmen: $bring\n\nBesonderes: $special\n\nLeitung: $leaders";
+				} else {
+					$description = get_the_content();
+				}
 				$description = str_replace( "\n", "\\n", $description );
 
 				echo "BEGIN:VEVENT\r\n";

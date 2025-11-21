@@ -2,16 +2,27 @@
 /**
  * Plugin Name: Pfadi-Aktivitäten Manager
  * Description: Digitalisiert und automatisiert den Informationsfluss einer Pfadi-Abteilung.
- * Version: 1.0.1
+ * Version: 1.1.0
  * Author: Ursin Saluz v/o Schlingel mit Antigravity
  * Text Domain: wp-pfadi-manager
+ *
+ * Changelog:
+ * 1.1.0
+ * - NEU: AJAX-basierte Filter-Tabs für Aktivitäten (kein Neuladen der Seite mehr).
+ * - NEU: Content-Typ "Mitteilungen" für allgemeine Infos.
+ * - NEU: E-Mail Versandplanung (Geplant vs. Sofort).
+ * - NEU: "Sofort versenden" Option bei Erstellung.
+ * - FIX: Diverse kleine Verbesserungen.
+ *
+ * 1.0.1
+ * - Initiale Version mit Aktivitäten, Abos und E-Mail Versand.
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'PFADI_MANAGER_VERSION', '1.0.1' );
+define( 'PFADI_MANAGER_VERSION', '1.1.0' );
 define( 'PFADI_MANAGER_PATH', plugin_dir_path( __FILE__ ) );
 define( 'PFADI_MANAGER_URL', plugin_dir_url( __FILE__ ) );
 

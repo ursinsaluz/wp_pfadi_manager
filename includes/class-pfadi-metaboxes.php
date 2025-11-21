@@ -39,6 +39,15 @@ class Pfadi_Metaboxes {
 			'normal',
 			'high'
 		);
+
+		add_meta_box(
+			'pfadi_announcement_details',
+			'Mitteilungs-Details',
+			array( $this, 'render_meta_box' ),
+			'announcement',
+			'normal',
+			'high'
+		);
 	}
 
 	public function render_meta_box( $post ) {
@@ -50,7 +59,9 @@ class Pfadi_Metaboxes {
 		$bring = get_post_meta( $post->ID, '_pfadi_bring', true );
 		$special = get_post_meta( $post->ID, '_pfadi_special', true );
 		$greeting = get_post_meta( $post->ID, '_pfadi_greeting', true );
+		$greeting = get_post_meta( $post->ID, '_pfadi_greeting', true );
 		$leaders = get_post_meta( $post->ID, '_pfadi_leaders', true );
+		$send_immediately = get_post_meta( $post->ID, '_pfadi_send_immediately', true );
 
 		// Default values for new posts
 		if ( empty( $start_time ) && empty( $end_time ) ) {
@@ -75,6 +86,7 @@ class Pfadi_Metaboxes {
 			<label for="pfadi_end_time">Endzeit:</label>
 			<input type="datetime-local" id="pfadi_end_time" name="pfadi_end_time" value="<?php echo esc_attr( $end_time ); ?>" style="width:100%">
 		</p>
+		<?php if ( 'activity' === $post->post_type ) : ?>
 		<p>
 			<label for="pfadi_location">Ort:</label>
 			<input type="text" id="pfadi_location" name="pfadi_location" value="<?php echo esc_attr( $location ); ?>" style="width:100%">
@@ -101,6 +113,20 @@ class Pfadi_Metaboxes {
 			<label for="pfadi_leaders">Leitung:</label>
 			<input type="text" id="pfadi_leaders" name="pfadi_leaders" value="<?php echo esc_attr( $leaders ); ?>" style="width:100%">
 		</p>
+		<p>
+			<label for="pfadi_leaders">Leitung:</label>
+			<input type="text" id="pfadi_leaders" name="pfadi_leaders" value="<?php echo esc_attr( $leaders ); ?>" style="width:100%">
+		</p>
+		<?php endif; ?>
+
+		<?php if ( 'scheduled' === get_option( 'pfadi_mail_mode', 'scheduled' ) ) : ?>
+		<p>
+			<label>
+				<input type="checkbox" name="pfadi_send_immediately" value="1" <?php checked( $send_immediately, '1' ); ?>>
+				Sofort versenden (ignoriert Zeitplan)
+			</label>
+		</p>
+		<?php endif; ?>
 		<?php
 	}
 
@@ -124,6 +150,12 @@ class Pfadi_Metaboxes {
 			if ( isset( $_POST[ $field ] ) ) {
 				update_post_meta( $post_id, '_' . $field, sanitize_text_field( $_POST[ $field ] ) );
 			}
+		}
+
+		if ( isset( $_POST['pfadi_send_immediately'] ) ) {
+			update_post_meta( $post_id, '_pfadi_send_immediately', '1' );
+		} else {
+			delete_post_meta( $post_id, '_pfadi_send_immediately' );
 		}
 	}
 }

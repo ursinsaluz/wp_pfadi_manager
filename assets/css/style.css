@@ -53,3 +53,45 @@
 	border-color: #ebccd1;
 	color: #a94442;
 }
+
+/* Tabs */
+.pfadi-tabs {
+	list-style: none;
+	padding: 0;
+	margin: 0 0 20px 0;
+	display: flex;
+	border-bottom: 2px solid #ddd;
+}
+
+.pfadi-tabs li {
+	margin-bottom: -2px;
+}
+
+.pfadi-tabs a {
+	display: block;
+	padding: 10px 20px;
+	text-decoration: none;
+	color: #555;
+	border-bottom: 2px solid transparent;
+	font-weight: bold;
+	cursor: pointer;
+}
+
+.pfadi-tabs a:hover {
+	color: #000;
+}
+
+.pfadi-tabs a.active {
+	color: #0073aa;
+	border-bottom-color: #0073aa;
+}
+
+#pfadi-activities-content {
+	position: relative;
+	min-height: 100px;
+}
+
+#pfadi-activities-content.loading {
+	opacity: 0.5;
+	pointer-events: none;
+}

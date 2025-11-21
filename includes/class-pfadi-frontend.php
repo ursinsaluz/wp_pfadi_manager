@@ -7,10 +7,19 @@ class Pfadi_Frontend {
 		add_shortcode( 'pfadi_subscribe', array( $this, 'render_subscribe' ) );
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
 		add_action( 'init', array( $this, 'handle_subscription_actions' ) );
+		add_action( 'wp_ajax_pfadi_subscribe', array( $this, 'handle_ajax_subscription' ) );
+		add_action( 'wp_ajax_nopriv_pfadi_subscribe', array( $this, 'handle_ajax_subscription' ) );
+		add_action( 'wp_ajax_pfadi_load_activities', array( $this, 'handle_ajax_load_activities' ) );
+		add_action( 'wp_ajax_nopriv_pfadi_load_activities', array( $this, 'handle_ajax_load_activities' ) );
 	}
 
 	public function enqueue_scripts() {
 		wp_enqueue_style( 'pfadi-style', PFADI_MANAGER_URL . 'assets/css/style.css', array(), '1.0.0' );
+		wp_enqueue_script( 'pfadi-frontend-js', PFADI_MANAGER_URL . 'assets/js/pfadi-frontend.js', array(), '1.0.0', true );
+		wp_localize_script( 'pfadi-frontend-js', 'pfadi_ajax', array(
+			'ajax_url' => admin_url( 'admin-ajax.php' ),
+			'nonce'    => wp_create_nonce( 'pfadi_subscribe_nonce' ),
+		) );
 	}
 
 	public function render_board( $atts ) {
@@ -29,57 +38,59 @@ class Pfadi_Frontend {
 		ob_start();
 		?>
 		<div class="pfadi-board">
-			<form method="get" class="pfadi-filter">
-				<select name="pfadi_unit" onchange="this.form.submit()">
-					<option value="">Alle Stufen</option>
-					<?php foreach ( $units as $unit ) : ?>
-						<option value="<?php echo esc_attr( $unit->slug ); ?>" <?php selected( $selected_unit, $unit->slug ); ?>>
+			<ul class="pfadi-tabs">
+				<li><a href="#" data-unit="" class="<?php echo empty( $selected_unit ) ? 'active' : ''; ?>">Alle Stufen</a></li>
+				<?php foreach ( $units as $unit ) : ?>
+					<li>
+						<a href="#" data-unit="<?php echo esc_attr( $unit->slug ); ?>" class="<?php echo $selected_unit === $unit->slug ? 'active' : ''; ?>">
 							<?php echo esc_html( $unit->name ); ?>
-						</option>
-					<?php endforeach; ?>
-				</select>
-			</form>
+						</a>
+					</li>
+				<?php endforeach; ?>
+			</ul>
 
-			<?php
-			$args = array(
-				'post_type'      => 'activity',
-				'posts_per_page' => -1,
-				'meta_key'       => '_pfadi_end_time',
-				'orderby'        => 'meta_value',
-				'order'          => 'ASC',
-				'meta_query'     => array(
-					array(
-						'key'     => '_pfadi_end_time',
-						'value'   => current_time( 'Y-m-d\TH:i' ),
-						'compare' => '>',
-						'type'    => 'DATETIME',
-					),
-				),
-			);
-
-			if ( ! empty( $selected_unit ) ) {
-				$args['tax_query'] = array(
-					array(
-						'taxonomy' => 'activity_unit',
-						'field'    => 'slug',
-						'terms'    => $selected_unit,
+			<div id="pfadi-activities-content" data-view="<?php echo esc_attr( $atts['view'] ); ?>">
+				<?php
+				$args = array(
+					'post_type'      => 'activity',
+					'posts_per_page' => -1,
+					'meta_key'       => '_pfadi_end_time',
+					'orderby'        => 'meta_value',
+					'order'          => 'ASC',
+					'meta_query'     => array(
+						array(
+							'key'     => '_pfadi_end_time',
+							'value'   => current_time( 'Y-m-d\TH:i' ),
+							'compare' => '>',
+							'type'    => 'DATETIME',
+						),
 					),
 				);
-			}
 
-			$query = new WP_Query( $args );
-
-			if ( $query->have_posts() ) :
-				if ( 'table' === $atts['view'] ) {
-					$this->render_table_view( $query );
-				} else {
-					$this->render_card_view( $query );
+				if ( ! empty( $selected_unit ) ) {
+					$args['tax_query'] = array(
+						array(
+							'taxonomy' => 'activity_unit',
+							'field'    => 'slug',
+							'terms'    => $selected_unit,
+						),
+					);
 				}
-				wp_reset_postdata();
-			else :
-				echo '<p>Keine aktuellen Aktivitäten.</p>';
-			endif;
-			?>
+
+				$query = new WP_Query( $args );
+
+				if ( $query->have_posts() ) :
+					if ( 'table' === $atts['view'] ) {
+						$this->render_table_view( $query );
+					} else {
+						$this->render_card_view( $query );
+					}
+					wp_reset_postdata();
+				else :
+					echo '<p>Keine aktuellen Aktivitäten.</p>';
+				endif;
+				?>
+			</div>
 		</div>
 		<?php
 		return ob_get_clean();
@@ -141,7 +152,8 @@ class Pfadi_Frontend {
 		ob_start();
 		?>
 		<div class="pfadi-subscribe">
-			<form method="post">
+			<div id="pfadi-subscribe-message"></div>
+			<form method="post" id="pfadi-subscribe-form">
 				<p>
 					<label>E-Mail Adresse:</label>
 					<input type="email" name="pfadi_email" required>
@@ -208,7 +220,11 @@ class Pfadi_Frontend {
 					'email' => urlencode( $email ),
 				), home_url() );
 
-				wp_mail( $email, 'Pfadi Abo Bestätigen', "Bitte bestätigen Sie Ihr Abo: $confirm_link" );
+				$subject = get_option( 'pfadi_confirm_subject', 'Pfadi Abo Bestätigen' );
+				$message = get_option( 'pfadi_confirm_message', 'Bitte bestätigen Sie Ihr Abo: {link}' );
+				$message = str_replace( '{link}', $confirm_link, $message );
+
+				wp_mail( $email, $subject, $message );
 				
 				echo '<div class="pfadi-message">Bitte prüfen Sie Ihre E-Mails zur Bestätigung.</div>';
 			}
@@ -234,5 +250,113 @@ class Pfadi_Frontend {
 				echo '<div class="pfadi-message error">Ungültiger Link.</div>';
 			}
 		}
+	}
+
+	public function handle_ajax_subscription() {
+		check_ajax_referer( 'pfadi_subscribe_nonce', 'nonce' );
+
+		$email = sanitize_email( $_POST['pfadi_email'] );
+		$units = isset( $_POST['pfadi_units'] ) ? array_map( 'intval', $_POST['pfadi_units'] ) : array();
+
+		if ( ! is_email( $email ) ) {
+			wp_send_json_error( array( 'message' => 'Ungültige E-Mail Adresse.' ) );
+		}
+
+		global $wpdb;
+		$table_name = $wpdb->prefix . 'pfadi_subscribers';
+		$token = wp_generate_password( 32, false );
+		
+		$exists = $wpdb->get_var( $wpdb->prepare( "SELECT id FROM $table_name WHERE email = %s", $email ) );
+		
+		if ( $exists ) {
+			$wpdb->update(
+				$table_name,
+				array(
+					'subscribed_units' => json_encode( $units ),
+					'token' => $token,
+					'status' => 'pending',
+				),
+				array( 'email' => $email )
+			);
+		} else {
+			$wpdb->insert(
+				$table_name,
+				array(
+					'email' => $email,
+					'subscribed_units' => json_encode( $units ),
+					'token' => $token,
+					'status' => 'pending',
+				)
+			);
+		}
+
+		$confirm_link = add_query_arg( array(
+			'pfadi_action' => 'confirm',
+			'token' => $token,
+			'email' => urlencode( $email ),
+		), home_url() );
+
+		$subject = get_option( 'pfadi_confirm_subject', 'Pfadi Abo Bestätigen' );
+		$message = get_option( 'pfadi_confirm_message', 'Bitte bestätigen Sie Ihr Abo: {link}' );
+		$message = str_replace( '{link}', $confirm_link, $message );
+
+		if ( wp_mail( $email, $subject, $message ) ) {
+			wp_send_json_success( array( 'message' => 'Du hast eine Email zur Bestätigung deiner Emailadresse erhalten.' ) );
+		} else {
+			wp_send_json_error( array( 'message' => 'Aktuell funktioniert es nicht, probiere es später nocheinmal oder informiere den Administrator: admin@alvier.ch.' ) );
+		}
+	}
+
+	public function handle_ajax_load_activities() {
+		// Nonce check optional for public read-only data, but good practice if we had one.
+		// Since we didn't localize a specific nonce for this action (reusing pfadi_subscribe_nonce might be confusing), 
+		// and it's public data, we'll skip strict nonce check or use the existing one if applicable.
+		// For now, let's keep it open as it's just reading public posts.
+		
+		$unit_slug = isset( $_POST['unit'] ) ? sanitize_text_field( $_POST['unit'] ) : '';
+		$view = isset( $_POST['view'] ) ? sanitize_text_field( $_POST['view'] ) : 'cards';
+
+		$args = array(
+			'post_type'      => 'activity',
+			'posts_per_page' => -1,
+			'meta_key'       => '_pfadi_end_time',
+			'orderby'        => 'meta_value',
+			'order'          => 'ASC',
+			'meta_query'     => array(
+				array(
+					'key'     => '_pfadi_end_time',
+					'value'   => current_time( 'Y-m-d\TH:i' ),
+					'compare' => '>',
+					'type'    => 'DATETIME',
+				),
+			),
+		);
+
+		if ( ! empty( $unit_slug ) ) {
+			$args['tax_query'] = array(
+				array(
+					'taxonomy' => 'activity_unit',
+					'field'    => 'slug',
+					'terms'    => $unit_slug,
+				),
+			);
+		}
+
+		$query = new WP_Query( $args );
+
+		ob_start();
+		if ( $query->have_posts() ) :
+			if ( 'table' === $view ) {
+				$this->render_table_view( $query );
+			} else {
+				$this->render_card_view( $query );
+			}
+			wp_reset_postdata();
+		else :
+			echo '<p>Keine aktuellen Aktivitäten.</p>';
+		endif;
+		$content = ob_get_clean();
+
+		wp_send_json_success( array( 'content' => $content ) );
 	}
 }

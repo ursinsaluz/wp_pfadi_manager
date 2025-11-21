@@ -29,12 +29,43 @@ class Pfadi_Admin_Pages {
 	public function render_subscribers_page() {
 		require_once PFADI_MANAGER_PATH . 'includes/class-pfadi-subscribers-list-table.php';
 
+		$this->handle_manual_subscription();
+
 		$list_table = new Pfadi_Subscribers_List_Table();
 		$list_table->process_bulk_action();
 		$list_table->prepare_items();
 		?>
 		<div class="wrap">
 			<h1 class="wp-heading-inline">Abonnenten</h1>
+			
+			<div class="card" style="max-width: 100%; margin-top: 20px;">
+				<h2>Neuen Abonnenten hinzufügen</h2>
+				<form method="post">
+					<table class="form-table">
+						<tr>
+							<th scope="row"><label for="new_subscriber_email">E-Mail</label></th>
+							<td><input type="email" name="new_subscriber_email" id="new_subscriber_email" class="regular-text" required></td>
+						</tr>
+						<tr>
+							<th scope="row">Stufen</th>
+							<td>
+								<?php
+								$units = get_terms( array(
+									'taxonomy' => 'activity_unit',
+									'hide_empty' => false,
+								) );
+								foreach ( $units as $unit ) {
+									echo '<label style="margin-right: 10px;"><input type="checkbox" name="new_subscriber_units[]" value="' . esc_attr( $unit->term_id ) . '"> ' . esc_html( $unit->name ) . '</label>';
+								}
+								?>
+							</td>
+						</tr>
+					</table>
+					<?php wp_nonce_field( 'add_subscriber', 'pfadi_add_subscriber_nonce' ); ?>
+					<p class="submit"><input type="submit" name="add_subscriber" id="submit" class="button button-primary" value="Abonnent hinzufügen"></p>
+				</form>
+			</div>
+
 			<form method="post">
 				<?php
 				$list_table->display();
@@ -42,6 +73,45 @@ class Pfadi_Admin_Pages {
 			</form>
 		</div>
 		<?php
+	}
+
+	private function handle_manual_subscription() {
+		if ( isset( $_POST['add_subscriber'] ) && check_admin_referer( 'add_subscriber', 'pfadi_add_subscriber_nonce' ) ) {
+			$email = sanitize_email( $_POST['new_subscriber_email'] );
+			$units = isset( $_POST['new_subscriber_units'] ) ? array_map( 'intval', $_POST['new_subscriber_units'] ) : array();
+
+			if ( is_email( $email ) ) {
+				global $wpdb;
+				$table_name = $wpdb->prefix . 'pfadi_subscribers';
+				
+				$exists = $wpdb->get_var( $wpdb->prepare( "SELECT id FROM $table_name WHERE email = %s", $email ) );
+
+				if ( $exists ) {
+					$wpdb->update(
+						$table_name,
+						array(
+							'subscribed_units' => json_encode( $units ),
+							'status' => 'active',
+						),
+						array( 'email' => $email )
+					);
+					echo '<div class="notice notice-success is-dismissible"><p>Abonnent aktualisiert.</p></div>';
+				} else {
+					$wpdb->insert(
+						$table_name,
+						array(
+							'email' => $email,
+							'subscribed_units' => json_encode( $units ),
+							'token' => wp_generate_password( 32, false ),
+							'status' => 'active',
+						)
+					);
+					echo '<div class="notice notice-success is-dismissible"><p>Abonnent hinzugefügt.</p></div>';
+				}
+			} else {
+				echo '<div class="notice notice-error is-dismissible"><p>Ungültige E-Mail Adresse.</p></div>';
+			}
+		}
 	}
 
 	public function render_info_page() {
