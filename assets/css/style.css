@@ -1,0 +1,55 @@
+.pfadi-board {
+	margin: 20px 0;
+}
+
+.pfadi-filter {
+	margin-bottom: 20px;
+}
+
+.pfadi-cards {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+	gap: 20px;
+}
+
+.pfadi-card {
+	border: 1px solid #ddd;
+	padding: 20px;
+	border-radius: 8px;
+	background: #fff;
+}
+
+.pfadi-card h3 {
+	margin-top: 0;
+}
+
+.pfadi-table {
+	width: 100%;
+	border-collapse: collapse;
+}
+
+.pfadi-table th, .pfadi-table td {
+	border: 1px solid #ddd;
+	padding: 10px;
+	text-align: left;
+}
+
+.pfadi-subscribe {
+	background: #f9f9f9;
+	padding: 20px;
+	border-radius: 8px;
+}
+
+.pfadi-message {
+	padding: 10px;
+	background: #dff0d8;
+	border: 1px solid #d6e9c6;
+	color: #3c763d;
+	margin-bottom: 20px;
+}
+
+.pfadi-message.error {
+	background: #f2dede;
+	border-color: #ebccd1;
+	color: #a94442;
+}
