@@ -119,6 +119,66 @@ class Pfadi_CPT {
 		add_action( 'manage_activity_posts_custom_column', array( $this, 'render_activity_columns' ), 10, 2 );
 		add_filter( 'manage_edit_activity_sortable_columns', array( $this, 'sortable_activity_columns' ) );
 		add_action( 'pre_get_posts', array( $this, 'sort_activity_by_date' ) );
+
+		// Bulk Actions
+		add_filter( 'bulk_actions-edit-activity', array( $this, 'register_bulk_actions' ) );
+		add_filter( 'bulk_actions-edit-announcement', array( $this, 'register_bulk_actions' ) );
+		add_filter( 'handle_bulk_actions-edit-activity', array( $this, 'handle_bulk_actions' ), 10, 3 );
+		add_filter( 'handle_bulk_actions-edit-announcement', array( $this, 'handle_bulk_actions' ), 10, 3 );
+		add_action( 'admin_notices', array( $this, 'bulk_action_admin_notice' ) );
+	}
+
+	public function register_bulk_actions( $bulk_actions ) {
+		if ( current_user_can( 'publish_posts' ) ) {
+			$bulk_actions['pfadi_resend_email'] = __( 'E-Mail erneut senden', 'wp-pfadi-manager' );
+		}
+		return $bulk_actions;
+	}
+
+	public function handle_bulk_actions( $redirect_to, $action, $post_ids ) {
+		if ( 'pfadi_resend_email' !== $action ) {
+			return $redirect_to;
+		}
+
+		if ( ! current_user_can( 'publish_posts' ) ) {
+			wp_die( __( 'Keine Berechtigung.', 'wp-pfadi-manager' ) );
+		}
+
+		$processed = 0;
+		$mailer = new Pfadi_Mailer();
+
+		foreach ( $post_ids as $post_id ) {
+			// Verify post type just in case
+			$post = get_post( $post_id );
+			if ( 'activity' === $post->post_type || 'announcement' === $post->post_type ) {
+				// We call send_newsletter_by_id which triggers the mailer
+				// Note: Pfadi_Mailer needs to be instantiated or method static. 
+				// send_newsletter_by_id is public but not static. 
+				// However, it's hooked to an action 'pfadi_send_post_email'.
+				// We can either call it directly on an instance or trigger the action.
+				// Triggering the action via wp_schedule_single_event( time(), ... ) is safer for performance if many are selected,
+				// but user might expect immediate feedback.
+				// Let's call it directly via instance for "Action" feel, or schedule it.
+				// Given "Resend", immediate is probably expected or at least "queued".
+				// Let's use the instance we created.
+				
+				$mailer->send_newsletter_by_id( $post_id );
+				$processed++;
+			}
+		}
+
+		$redirect_to = add_query_arg( 'pfadi_resent_emails', $processed, $redirect_to );
+		return $redirect_to;
+	}
+
+	public function bulk_action_admin_notice() {
+		if ( ! empty( $_REQUEST['pfadi_resent_emails'] ) ) {
+			$count = intval( $_REQUEST['pfadi_resent_emails'] );
+			printf(
+				'<div id="message" class="updated notice is-dismissible"><p>%s</p></div>',
+				sprintf( _n( '%s E-Mail wurde erneut versendet.', '%s E-Mails wurden erneut versendet.', $count, 'wp-pfadi-manager' ), $count )
+			);
+		}
 	}
 
 	public function register_taxonomy() {

@@ -6,6 +6,7 @@ class Pfadi_Metaboxes {
 		add_action( 'add_meta_boxes', array( $this, 'add_meta_boxes' ) );
 		add_action( 'save_post', array( $this, 'save_meta_boxes' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_scripts' ) );
+		add_action( 'edit_form_after_title', array( $this, 'render_validity_fields' ) );
 	}
 
 	public function enqueue_admin_scripts( $hook ) {
@@ -22,7 +23,7 @@ class Pfadi_Metaboxes {
 					$slug = sanitize_title( $unit );
 					$settings[ $slug ] = array(
 						'greeting' => get_option( "pfadi_greeting_$slug" ),
-						'leaders'  => get_option( "pfadi_leaders_$slug" ),
+						'leaders'  => get_option( "pfadi_leaders_$slug", 'Die Leiter' ),
 						'starttime' => get_option( "pfadi_starttime_$slug" ),
 						'endtime'   => get_option( "pfadi_endtime_$slug" ),
 					);
@@ -53,6 +54,8 @@ class Pfadi_Metaboxes {
 
 		// Move 'activity_unit' taxonomy box to main column, above details
 		remove_meta_box( 'activity_unitdiv', 'activity', 'side' );
+		remove_meta_box( 'activity_unitdiv', 'announcement', 'side' );
+		
 		add_meta_box(
 			'activity_unitdiv',
 			__( 'Stufen', 'wp-pfadi-manager' ),
@@ -62,6 +65,48 @@ class Pfadi_Metaboxes {
 			'high',
 			array( 'taxonomy' => 'activity_unit' )
 		);
+
+		add_meta_box(
+			'activity_unitdiv',
+			__( 'Stufen', 'wp-pfadi-manager' ),
+			'post_categories_meta_box',
+			'announcement',
+			'normal',
+			'high',
+			array( 'taxonomy' => 'activity_unit' )
+		);
+	}
+
+	public function render_validity_fields( $post ) {
+		if ( 'announcement' !== $post->post_type ) {
+			return;
+		}
+
+		$start_time = get_post_meta( $post->ID, '_pfadi_start_time', true );
+		$end_time = get_post_meta( $post->ID, '_pfadi_end_time', true );
+
+		if ( empty( $start_time ) && empty( $end_time ) ) {
+			$now = current_time( 'timestamp' );
+			$start_time = date( 'Y-m-d\TH:i', $now );
+			$end_time = date( 'Y-m-d\TH:i', strtotime( '+2 weeks', $now ) );
+		} else {
+			$start_time = str_replace( ' ', 'T', $start_time );
+			$end_time = str_replace( ' ', 'T', $end_time );
+		}
+		?>
+		<div class="postbox" style="margin-top: 20px; margin-bottom: 20px;">
+			<div class="postbox-header"><h2 class="hndle"><?php _e( 'Gültigkeitsbereich', 'wp-pfadi-manager' ); ?></h2></div>
+			<div class="inside">
+				<p>
+					<label for="pfadi_start_time"><?php _e( 'Gültig von:', 'wp-pfadi-manager' ); ?></label>
+					<input type="datetime-local" id="pfadi_start_time" name="pfadi_start_time" value="<?php echo esc_attr( $start_time ); ?>">
+					
+					<label for="pfadi_end_time" style="margin-left: 20px;"><?php _e( 'Gültig bis:', 'wp-pfadi-manager' ); ?></label>
+					<input type="datetime-local" id="pfadi_end_time" name="pfadi_end_time" value="<?php echo esc_attr( $end_time ); ?>">
+				</p>
+			</div>
+		</div>
+		<?php
 	}
 
 	public function render_meta_box( $post ) {
@@ -73,36 +118,27 @@ class Pfadi_Metaboxes {
 		$bring = get_post_meta( $post->ID, '_pfadi_bring', true );
 		$special = get_post_meta( $post->ID, '_pfadi_special', true );
 		$greeting = get_post_meta( $post->ID, '_pfadi_greeting', true );
-		$greeting = get_post_meta( $post->ID, '_pfadi_greeting', true );
 		$leaders = get_post_meta( $post->ID, '_pfadi_leaders', true );
 		$send_immediately = get_post_meta( $post->ID, '_pfadi_send_immediately', true );
 
-		// Default values for new posts
-		if ( empty( $start_time ) && empty( $end_time ) ) {
-			if ( 'announcement' === $post->post_type ) {
-				// Announcement: Valid from NOW, until 2 weeks later
-				$now = current_time( 'timestamp' );
-				$start_time = date( 'Y-m-d\TH:i', $now );
-				$end_time = date( 'Y-m-d\TH:i', strtotime( '+2 weeks', $now ) );
-			} else {
-				// Activity: Next Saturday 14:00 - 17:00
-				$next_saturday = new DateTime( 'next saturday 14:00' );
-				$start_time = $next_saturday->format( 'Y-m-d\TH:i' );
-				
-				$next_saturday_end = new DateTime( 'next saturday 17:00' );
-				$end_time = $next_saturday_end->format( 'Y-m-d\TH:i' );
-			}
+		// Default values for new posts (Only for Activity now, Announcement handled in render_validity_fields)
+		if ( 'activity' === $post->post_type && empty( $start_time ) && empty( $end_time ) ) {
+			$next_saturday = new DateTime( 'next saturday 14:00' );
+			$start_time = $next_saturday->format( 'Y-m-d\TH:i' );
+			
+			$next_saturday_end = new DateTime( 'next saturday 17:00' );
+			$end_time = $next_saturday_end->format( 'Y-m-d\TH:i' );
 
 			$location = 'Pfadiheim';
 			$bring = 'Gueti Luuna';
 		} else {
-			// Ensure format for input (needs T)
 			$start_time = str_replace( ' ', 'T', $start_time );
 			$end_time = str_replace( ' ', 'T', $end_time );
 		}
 
-		$start_label = 'activity' === $post->post_type ? __( 'Startzeit:', 'wp-pfadi-manager' ) : __( 'Gültig von:', 'wp-pfadi-manager' );
-		$end_label = 'activity' === $post->post_type ? __( 'Endzeit:', 'wp-pfadi-manager' ) : __( 'Gültig bis:', 'wp-pfadi-manager' );
+		if ( 'activity' === $post->post_type ) :
+			$start_label = __( 'Startzeit:', 'wp-pfadi-manager' );
+			$end_label = __( 'Endzeit:', 'wp-pfadi-manager' );
 		?>
 		<p>
 			<label for="pfadi_start_time"><?php echo esc_html( $start_label ); ?></label>
@@ -112,7 +148,6 @@ class Pfadi_Metaboxes {
 			<label for="pfadi_end_time"><?php echo esc_html( $end_label ); ?></label>
 			<input type="datetime-local" id="pfadi_end_time" name="pfadi_end_time" value="<?php echo esc_attr( $end_time ); ?>" style="width:100%">
 		</p>
-		<?php if ( 'activity' === $post->post_type ) : ?>
 		<p>
 			<label for="pfadi_location"><?php _e( 'Ort:', 'wp-pfadi-manager' ); ?></label>
 			<input type="text" id="pfadi_location" name="pfadi_location" value="<?php echo esc_attr( $location ); ?>" style="width:100%">
@@ -127,13 +162,7 @@ class Pfadi_Metaboxes {
 		</p>
 		<p>
 			<label for="pfadi_greeting"><?php _e( 'Gruss:', 'wp-pfadi-manager' ); ?></label>
-			<select id="pfadi_greeting" name="pfadi_greeting" style="width:100%">
-				<option value="Allzeit bereit" <?php selected( $greeting, 'Allzeit bereit' ); ?>>Allzeit bereit</option>
-				<option value="Bewusst handlä" <?php selected( $greeting, 'Bewusst handlä' ); ?>>Bewusst handlä</option>
-				<option value="Zäma Wiiter" <?php selected( $greeting, 'Zäma Wiiter' ); ?>>Zäma Wiiter</option>
-				<option value="Üsers Bescht" <?php selected( $greeting, 'Üsers Bescht' ); ?>>Üsers Bescht</option>
-				<option value="Mit freud debi" <?php selected( $greeting, 'Mit freud debi' ); ?>>Mit freud debi</option>
-			</select>
+			<input type="text" id="pfadi_greeting" name="pfadi_greeting" value="<?php echo esc_attr( $greeting ); ?>" style="width:100%">
 		</p>
 		<p>
 			<label for="pfadi_leaders"><?php _e( 'Leitung:', 'wp-pfadi-manager' ); ?></label>

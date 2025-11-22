@@ -21,7 +21,6 @@ class Pfadi_Loader {
 		require_once PFADI_MANAGER_PATH . 'includes/class-pfadi-mailer.php';
 		require_once PFADI_MANAGER_PATH . 'includes/class-pfadi-feeds.php';
 		require_once PFADI_MANAGER_PATH . 'includes/class-pfadi-cron.php';
-		require_once PFADI_MANAGER_PATH . 'includes/class-pfadi-cron.php';
 		require_once PFADI_MANAGER_PATH . 'includes/class-pfadi-admin-pages.php';
 		require_once PFADI_MANAGER_PATH . 'includes/class-pfadi-blocks.php';
 	}

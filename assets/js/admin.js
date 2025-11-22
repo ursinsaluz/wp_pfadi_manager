@@ -15,6 +15,8 @@ jQuery(document).ready(function ($) {
 
         var greeting = '';
         var leaders = '';
+        var starttime = '';
+        var endtime = '';
 
         // Check if 'Abteilung' is selected
         if (selectedUnits.includes('Abteilung')) {
@@ -84,10 +86,24 @@ jQuery(document).ready(function ($) {
         }
     }
 
+    // Function to toggle visibility of details meta box
+    function toggleDetailsBox() {
+        var hasSelection = $('#activity_unitchecklist input:checked').length > 0;
+        var detailsBox = $('#pfadi_activity_details, #pfadi_announcement_details');
+
+        if (hasSelection) {
+            detailsBox.slideDown();
+        } else {
+            detailsBox.hide();
+        }
+    }
+
+    // Initial check
+    toggleDetailsBox();
+
     // Bind change event to checkboxes
     $('#activity_unitchecklist input[type="checkbox"]').on('change', function () {
-        // If this specific checkbox was checked, we might want to prioritize its values
-        // But the logic "Abteilung wins" must hold.
+        toggleDetailsBox();
         updateFields();
     });
 });

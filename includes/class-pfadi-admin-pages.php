@@ -8,13 +8,7 @@ class Pfadi_Admin_Pages {
 	}
 
 	public function register_settings() {
-		$units = array( 'biber', 'wolfe', 'pfadis', 'pios', 'rover', 'abteilung' );
-		foreach ( $units as $unit ) {
-			register_setting( 'pfadi_settings_group', "pfadi_greeting_$unit" );
-			register_setting( 'pfadi_settings_group', "pfadi_leaders_$unit" );
-			register_setting( 'pfadi_settings_group', "pfadi_starttime_$unit" );
-			register_setting( 'pfadi_settings_group', "pfadi_endtime_$unit" );
-		}
+		// Settings are handled in class-pfadi-settings.php
 	}
 
 	public function add_admin_menus() {
@@ -27,88 +21,10 @@ class Pfadi_Admin_Pages {
 			array( $this, 'render_subscribers_page' )
 		);
 
-		add_submenu_page(
-			'edit.php?post_type=activity',
-			__( 'Hilfe & Info', 'wp-pfadi-manager' ),
-			__( 'Hilfe & Info', 'wp-pfadi-manager' ),
-			'manage_options',
-			'pfadi_info',
-			array( $this, 'render_info_page' )
-		);
 
-		add_submenu_page(
-			'edit.php?post_type=activity',
-			__( 'Einstellungen', 'wp-pfadi-manager' ),
-			__( 'Einstellungen', 'wp-pfadi-manager' ),
-			'manage_options',
-			'pfadi_settings',
-			array( $this, 'render_settings_page' )
-		);
 	}
 
-	public function render_settings_page() {
-		?>
-		<div class="wrap">
-			<h1><?php _e( 'Einstellungen', 'wp-pfadi-manager' ); ?></h1>
-			<form method="post" action="options.php">
-				<?php settings_fields( 'pfadi_settings_group' ); ?>
-				<?php do_settings_sections( 'pfadi_settings_group' ); ?>
-				
-				<div class="card" style="max-width: 800px; padding: 20px; margin-top: 20px;">
-					<h2><?php _e( 'Standard-Werte für Stufen', 'wp-pfadi-manager' ); ?></h2>
-					<p><?php _e( 'Hier können Sie die Standard-Werte für Gruss und Leitung definieren, die beim Erstellen einer Aktivität automatisch ausgefüllt werden.', 'wp-pfadi-manager' ); ?></p>
-					
-					<table class="form-table">
-						<?php
-						$units = array(
-							'biber' => 'Biber',
-							'wolfe' => 'Wölfe',
-							'pfadis' => 'Pfadis',
-							'pios' => 'Pios',
-							'rover' => 'Rover',
-							'abteilung' => 'Abteilung'
-						);
 
-						foreach ( $units as $slug => $label ) :
-							?>
-							<tr>
-								<th colspan="2" style="background: #f0f0f1; padding: 10px;"><strong><?php echo esc_html( $label ); ?></strong></th>
-							</tr>
-							<tr>
-								<th scope="row"><label for="pfadi_greeting_<?php echo esc_attr( $slug ); ?>"><?php _e( 'Gruss', 'wp-pfadi-manager' ); ?></label></th>
-								<td>
-									<input type="text" name="pfadi_greeting_<?php echo esc_attr( $slug ); ?>" id="pfadi_greeting_<?php echo esc_attr( $slug ); ?>" value="<?php echo esc_attr( get_option( "pfadi_greeting_$slug" ) ); ?>" class="regular-text">
-								</td>
-							</tr>
-							<tr>
-								<th scope="row"><label for="pfadi_leaders_<?php echo esc_attr( $slug ); ?>"><?php _e( 'Leitung', 'wp-pfadi-manager' ); ?></label></th>
-								<td>
-									<input type="text" name="pfadi_leaders_<?php echo esc_attr( $slug ); ?>" id="pfadi_leaders_<?php echo esc_attr( $slug ); ?>" value="<?php echo esc_attr( get_option( "pfadi_leaders_$slug" ) ); ?>" class="regular-text">
-								</td>
-							</tr>
-							<tr>
-								<th scope="row"><label for="pfadi_starttime_<?php echo esc_attr( $slug ); ?>"><?php _e( 'Startzeit (HH:MM)', 'wp-pfadi-manager' ); ?></label></th>
-								<td>
-									<input type="time" name="pfadi_starttime_<?php echo esc_attr( $slug ); ?>" id="pfadi_starttime_<?php echo esc_attr( $slug ); ?>" value="<?php echo esc_attr( get_option( "pfadi_starttime_$slug" ) ); ?>" class="regular-text">
-								</td>
-							</tr>
-							<tr>
-								<th scope="row"><label for="pfadi_endtime_<?php echo esc_attr( $slug ); ?>"><?php _e( 'Endzeit (HH:MM)', 'wp-pfadi-manager' ); ?></label></th>
-								<td>
-									<input type="time" name="pfadi_endtime_<?php echo esc_attr( $slug ); ?>" id="pfadi_endtime_<?php echo esc_attr( $slug ); ?>" value="<?php echo esc_attr( get_option( "pfadi_endtime_$slug" ) ); ?>" class="regular-text">
-								</td>
-							</tr>
-							<?php
-						endforeach;
-						?>
-					</table>
-				</div>
-
-				<?php submit_button(); ?>
-			</form>
-		</div>
-		<?php
-	}
 
 	public function render_subscribers_page() {
 		require_once PFADI_MANAGER_PATH . 'includes/class-pfadi-subscribers-list-table.php';
@@ -301,9 +217,17 @@ class Pfadi_Admin_Pages {
 						'email' => urlencode( $email ),
 					), home_url() );
 
-					$subject = get_option( 'pfadi_confirm_subject', __( 'Pfadi Abo Bestätigen', 'wp-pfadi-manager' ) );
+					$subject = get_option( 'pfadi_confirm_subject', __( '[{site_title}] Pfadi Abo Bestätigen', 'wp-pfadi-manager' ) );
 					$message = get_option( 'pfadi_confirm_message', __( 'Bitte bestätigen Sie Ihr Abo: {link}', 'wp-pfadi-manager' ) );
-					$message = str_replace( '{link}', $confirm_link, $message );
+					
+					$site_title = get_bloginfo( 'name' );
+					$placeholders = array(
+						'{link}'       => $confirm_link,
+						'{site_title}' => $site_title,
+					);
+					
+					$subject = str_replace( array_keys( $placeholders ), array_values( $placeholders ), $subject );
+					$message = str_replace( array_keys( $placeholders ), array_values( $placeholders ), $message );
 					
 					if ( wp_mail( $email, $subject, $message ) ) {
 						echo '<div class="notice notice-success is-dismissible"><p>' . __( 'Abonnent hinzugefügt. Bestätigungs-E-Mail wurde versendet.', 'wp-pfadi-manager' ) . '</p></div>';
@@ -315,75 +239,5 @@ class Pfadi_Admin_Pages {
 				echo '<div class="notice notice-error is-dismissible"><p>' . __( 'Ungültige E-Mail Adresse.', 'wp-pfadi-manager' ) . '</p></div>';
 			}
 		}
-	}
-
-	public function render_info_page() {
-		?>
-		<div class="wrap">
-			<h1><?php _e( 'Hilfe & Informationen', 'wp-pfadi-manager' ); ?></h1>
-			
-			<div class="card">
-				<h2><?php _e( 'Shortcodes', 'wp-pfadi-manager' ); ?></h2>
-				<p><?php _e( 'Folgende Shortcodes stehen zur Verfügung:', 'wp-pfadi-manager' ); ?></p>
-				
-				<h3>1. <?php _e( 'Aktivitäten-Board', 'wp-pfadi-manager' ); ?></h3>
-				<code>[pfadi_board]</code>
-				<p><?php _e( 'Zeigt die aktuellen Aktivitäten an.', 'wp-pfadi-manager' ); ?></p>
-				<p><strong><?php _e( 'Parameter:', 'wp-pfadi-manager' ); ?></strong></p>
-				<ul>
-					<li><code>view="cards"</code> (<?php _e( 'Standard', 'wp-pfadi-manager' ); ?>) - <?php _e( 'Zeigt Kacheln an.', 'wp-pfadi-manager' ); ?></li>
-					<li><code>view="table"</code> - <?php _e( 'Zeigt eine Tabelle an.', 'wp-pfadi-manager' ); ?></li>
-				</ul>
-				<p><em><?php _e( 'Beispiel:', 'wp-pfadi-manager' ); ?></em> <code>[pfadi_board view="table"]</code></p>
-
-				<h3>2. <?php _e( 'Abo-Formular', 'wp-pfadi-manager' ); ?></h3>
-				<code>[pfadi_subscribe]</code>
-				<p><?php _e( 'Zeigt das Formular zum Abonnieren des Newsletters an.', 'wp-pfadi-manager' ); ?></p>
-
-				<h3>3. <?php _e( 'Mitteilungen', 'wp-pfadi-manager' ); ?></h3>
-				<code>[pfadi_news]</code>
-				<p><?php _e( 'Zeigt aktuelle Mitteilungen an.', 'wp-pfadi-manager' ); ?></p>
-				<p><strong><?php _e( 'Parameter:', 'wp-pfadi-manager' ); ?></strong></p>
-				<ul>
-					<li><code>view="carousel"</code> (<?php _e( 'Standard', 'wp-pfadi-manager' ); ?>) - <?php _e( 'Zeigt ein Karussell aller aktuellen Mitteilungen.', 'wp-pfadi-manager' ); ?></li>
-					<li><code>view="banner"</code> - <?php _e( 'Zeigt die neuste Mitteilung als Banner an.', 'wp-pfadi-manager' ); ?></li>
-					<li><code>limit="-1"</code> (<?php _e( 'Optional', 'wp-pfadi-manager' ); ?>) - <?php _e( 'Anzahl der anzuzeigenden Mitteilungen (Standard: alle).', 'wp-pfadi-manager' ); ?></li>
-				</ul>
-				<p><em><?php _e( 'Beispiel:', 'wp-pfadi-manager' ); ?></em> <code>[pfadi_news view="banner"]</code></p>
-			</div>
-
-			<div class="card">
-				<h2><?php _e( 'Technische Informationen', 'wp-pfadi-manager' ); ?></h2>
-				<p><strong><?php _e( 'Plugin Version:', 'wp-pfadi-manager' ); ?></strong> <?php echo PFADI_MANAGER_VERSION; ?></p>
-				<p><strong><?php _e( 'Datenbank-Tabelle:', 'wp-pfadi-manager' ); ?></strong> <?php global $wpdb; echo $wpdb->prefix . 'pfadi_subscribers'; ?></p>
-				<p><strong><?php _e( 'Cronjobs:', 'wp-pfadi-manager' ); ?></strong></p>
-				<ul>
-					<li><?php _e( 'Täglicher Cleanup (alte Aktivitäten archivieren)', 'wp-pfadi-manager' ); ?></li>
-				</ul>
-			</div>
-
-			<div class="card">
-				<h2><?php _e( 'Wartung', 'wp-pfadi-manager' ); ?></h2>
-				<p><?php _e( 'Die Aktivitäten werden automatisch archiviert, sobald das Enddatum erreicht ist.', 'wp-pfadi-manager' ); ?></p>
-			</div>
-		</div>
-		<style>
-			.card {
-				background: #fff;
-				border: 1px solid #ccd0d4;
-				padding: 20px;
-				margin-bottom: 20px;
-				max-width: 800px;
-				box-shadow: 0 1px 1px rgba(0,0,0,.04);
-			}
-			.card h2 {
-				margin-top: 0;
-			}
-			.card code {
-				background: #f0f0f1;
-				padding: 3px 5px;
-			}
-		</style>
-		<?php
 	}
 }

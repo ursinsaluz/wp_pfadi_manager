@@ -3,7 +3,7 @@ Contributors: schlingel
 Tags: pfadi, activities, manager, scout
 Requires at least: 6.0
 Tested up to: 6.4
-Stable tag: 1.1.1
+Stable tag: 1.2.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -14,14 +14,19 @@ Digitalisiert und automatisiert den Informationsfluss einer Pfadi-Abteilung.
 Der Pfadi-Aktivitäten Manager hilft Abteilungen, ihre Aktivitäten zu verwalten, auf der Webseite darzustellen und Eltern/Teilnehmer per E-Mail zu informieren.
 
 Features:
-*   Verwaltung von Aktivitäten (CPT) mit Stufen-Zuweisung.
-*   Frontend-Darstellung via Shortcode `[pfadi_board]`.
-*   AJAX-basierte Filterung nach Stufen.
-*   Abonnement-System für Eltern (Double Opt-In).
-*   Automatischer E-Mail Versand bei neuen Aktivitäten.
-*   Versandplanung (Sofort oder Geplant).
-*   Mitteilungen (Announcements) für allgemeine Infos.
-*   iCal Feed Integration.
+*   **Aktivitäten:** Verwaltung von Aktivitäten (CPT) mit Stufen-Zuweisung, Zeit, Ort und Mitnehmen-Infos.
+*   **Mitteilungen:** Eigener Bereich für allgemeine Infos (Announcements) mit Gültigkeitsdauer.
+*   **Frontend-Darstellung:**
+    *   `[pfadi_board]`: Zeigt Aktivitäten als Kacheln, Liste oder Tabelle. Filterbar nach Stufen.
+    *   `[pfadi_news]`: Zeigt Mitteilungen als Banner oder Karussell.
+    *   `[pfadi_subscribe]`: Abo-Formular für den Newsletter.
+*   **E-Mail Newsletter:**
+    *   Automatischer Versand bei Veröffentlichung (Sofort oder Geplant).
+    *   Double Opt-In Verfahren für Abonnenten.
+    *   **NEU:** Anpassbare HTML-Templates für E-Mails.
+    *   **NEU:** "E-Mail erneut senden" Funktion für Admins.
+*   **Stufen-System:** Flexible Verwaltung der Stufen (Biber, Wölfe, Pfadis, etc.) mit Standard-Gruss und Leitung.
+*   **iCal / RSS:** Automatische Feeds für Kalender-Integration.
 
 == Installation ==
 
@@ -29,7 +34,23 @@ Features:
 2. Aktiviere das Plugin im Menü 'Plugins' in WordPress.
 3. Konfiguriere die Einstellungen unter 'Pfadi Aktivitäten' -> 'Konfiguration'.
 
+== Shortcodes ==
+
+*   `[pfadi_board view="cards|list|table" unit="slug"]`
+*   `[pfadi_news view="carousel|banner" limit="5"]`
+*   `[pfadi_subscribe]`
+
 == Changelog ==
+
+= 1.2.0 =
+*   NEU: Anpassbare HTML-Templates für E-Mails (Aktivitäten & Mitteilungen).
+*   NEU: "E-Mail erneut senden" als Mehrfachaktion (Bulk Action).
+*   NEU: Stufen-Auswahl für Mitteilungen.
+*   NEU: Shortcode `[pfadi_news]` für Mitteilungen (Karussell/Banner).
+*   NEU: Verbesserte Admin-Oberfläche mit Tabs und Hilfetexten.
+*   FIX: Unterstützung für deutsche Platzhalter ({Stufe}, {Titel}) in E-Mail Betreffs.
+*   FIX: Korrekte Positionierung der Gültigkeitsdauer bei Mitteilungen.
+*   FIX: E-Mail Versand-Timing (leere Felder behoben).
 
 = 1.1.1 =
 *   NEU: "Mitteilungen" als eigener Menüpunkt.

@@ -537,15 +537,24 @@ class Pfadi_Frontend {
 			'email' => urlencode( $email ),
 		), home_url() );
 
-		$subject = get_option( 'pfadi_confirm_subject', __( 'Pfadi Abo Bestätigen', 'wp-pfadi-manager' ) );
+		$subject = get_option( 'pfadi_confirm_subject', __( '[{site_title}] Pfadi Abo Bestätigen', 'wp-pfadi-manager' ) );
 		$message = get_option( 'pfadi_confirm_message', __( 'Bitte bestätigen Sie Ihr Abo: {link}', 'wp-pfadi-manager' ) );
-		$message = str_replace( '{link}', $confirm_link, $message );
+		
+		$site_title = get_bloginfo( 'name' );
+		$placeholders = array(
+			'{link}'       => $confirm_link,
+			'{site_title}' => $site_title,
+		);
+		
+		$subject = str_replace( array_keys( $placeholders ), array_values( $placeholders ), $subject );
+		$message = str_replace( array_keys( $placeholders ), array_values( $placeholders ), $message );
 
 		Pfadi_Logger::log( "Sending confirmation email to $email" );
 		
 		$headers = array( 'Content-Type: text/html; charset=UTF-8' );
-		$admin_email = get_option( 'admin_email' );
-		$headers[] = 'From: Pfadi Manager <' . $admin_email . '>';
+		// Removing custom From header to avoid spoofing rejection
+		// $admin_email = get_option( 'admin_email' );
+		// $headers[] = 'From: Pfadi Manager <' . $admin_email . '>';
 
 		$sent = wp_mail( $email, $subject, $message, $headers );
 

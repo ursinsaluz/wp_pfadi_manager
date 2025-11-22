@@ -17,19 +17,16 @@ class Pfadi_Mailer {
 			$send_immediately = get_post_meta( $post->ID, '_pfadi_send_immediately', true );
 
 			if ( 'immediate' === $mode || '1' === $send_immediately ) {
-				$this->send_newsletter( $post );
+				// Schedule for "now" to ensure it runs in a separate process/after save_post
+				wp_schedule_single_event( time(), 'pfadi_send_post_email', array( $post->ID ) );
 			} else {
 				// Scheduled mode
 				$time_str = get_option( 'pfadi_mail_time', '20:00' );
 				$schedule_time = strtotime( $time_str );
 				
-				// If time has passed today, schedule for now (or tomorrow? Spec says "remains on the day of publishing")
-				// "Es kann die Uhrzeit geändert werden aber es bleibt am tag des publizierens."
-				// This implies if I publish at 21:00 and schedule is 20:00, it should probably go out immediately or was missed?
-				// Let's assume if passed, send immediately.
-				
 				if ( time() > $schedule_time ) {
-					$this->send_newsletter( $post );
+					// Schedule for "now"
+					wp_schedule_single_event( time(), 'pfadi_send_post_email', array( $post->ID ) );
 				} else {
 					wp_schedule_single_event( $schedule_time, 'pfadi_send_post_email', array( $post->ID ) );
 				}
@@ -116,11 +113,34 @@ class Pfadi_Mailer {
 			$unit_str = 'Pfadi';
 		}
 
-		// Construct Subject: [Site Name] {Unit}-Aktivität: {Title}
-		$subject = sprintf( __( '[%s] %s-Aktivität: %s', 'wp-pfadi-manager' ), $site_name, $unit_str, $post->post_title );
+		// Construct Subject
+		$subject_template = get_option( 'pfadi_mail_subject', '[{site_title}] Neue Pfadi-Aktivität: {title}' );
+		
+		// Support both English and German placeholders, and case-insensitive variants
+		$placeholders = array(
+			'{site_title}' => $site_name,
+			'{SiteTitle}'  => $site_name,
+			'{unit}'       => $unit_str,
+			'{Unit}'       => $unit_str,
+			'{stufe}'      => $unit_str,
+			'{Stufe}'      => $unit_str,
+			'{title}'      => $post->post_title,
+			'{Title}'      => $post->post_title,
+			'{titel}'      => $post->post_title,
+			'{Titel}'      => $post->post_title,
+		);
+
+		$subject = str_replace( array_keys( $placeholders ), array_values( $placeholders ), $subject_template );
 
 		if ( 'announcement' === $post->post_type ) {
-			$subject = sprintf( __( '[%s] Mitteilung: %s', 'wp-pfadi-manager' ), $site_name, $post->post_title );
+			// For announcements, we might want a different default or setting, but for now let's use the same logic or a specific one if requested.
+			// The user didn't ask for a separate announcement subject setting, but the default was different.
+			// Let's use a sensible default if the setting is empty or just use the setting.
+			// Actually, the user sees "Betreff für neue Aktivitäten".
+			// Maybe we should prepend "Mitteilung:" if it's an announcement?
+			// Or just let the user configure it. For now, let's stick to the configured subject but maybe add a fallback/override for announcements if needed.
+			// Given the user request, they want to use placeholders.
+			// Let's use the same subject setting for now, as it's flexible enough with placeholders.
 		}
 
 		$message = $this->get_email_template( $post );
@@ -167,61 +187,106 @@ class Pfadi_Mailer {
 			);
 		}
 
-		ob_start();
-		?>
-		<!DOCTYPE html>
-		<html>
-		<head>
-			<style>
-				body { font-family: sans-serif; line-height: 1.6; }
-				.container { max-width: 600px; margin: 0 auto; padding: 20px; }
-				h1 { color: #333; }
-				.meta { background: #f9f9f9; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
-				.label { font-weight: bold; }
-			</style>
-		</head>
-		<body>
-			<div class="container">
-				<h1><?php echo esc_html( $post->post_title ); ?></h1>
-				
-				<div class="meta">
-					<p><span class="label"><?php _e( 'Wann:', 'wp-pfadi-manager' ); ?></span> <?php echo esc_html( $date_str ); ?></p>
+		// Prepare Placeholders
+		$placeholders = array(
+			'{title}'      => esc_html( $post->post_title ),
+			'{site_title}' => get_bloginfo( 'name' ),
+			'{date_str}'   => esc_html( $date_str ),
+			'{content}'    => wpautop( wp_kses_post( $post->post_content ) ),
+		);
+
+		// Unit placeholders
+		$units = wp_get_post_terms( $post->ID, 'activity_unit' );
+		$unit_names = array();
+		if ( $units && ! is_wp_error( $units ) ) {
+			foreach ( $units as $unit ) {
+				$unit_names[] = $unit->name;
+			}
+		}
+		$placeholders['{unit}'] = esc_html( implode( ', ', $unit_names ) );
+
+		// Activity specific placeholders
+		if ( 'activity' === $post->post_type ) {
+			$location = get_post_meta( $post->ID, '_pfadi_location', true );
+			$bring = get_post_meta( $post->ID, '_pfadi_bring', true );
+			$special = get_post_meta( $post->ID, '_pfadi_special', true );
+			$greeting = get_post_meta( $post->ID, '_pfadi_greeting', true );
+			$leaders = get_post_meta( $post->ID, '_pfadi_leaders', true );
+
+			$placeholders['{location}'] = esc_html( $location );
+			$placeholders['{bring}']    = nl2br( esc_html( $bring ) );
+			$placeholders['{special}']  = nl2br( esc_html( $special ) );
+			$placeholders['{greeting}'] = esc_html( $greeting );
+			$placeholders['{leaders}']  = esc_html( $leaders );
+		} else {
+			// Empty strings for activity placeholders if not activity
+			$placeholders['{location}'] = '';
+			$placeholders['{bring}']    = '';
+			$placeholders['{special}']  = '';
+			$placeholders['{greeting}'] = '';
+			$placeholders['{leaders}']  = '';
+		}
+
+		// Get Template
+		if ( 'activity' === $post->post_type ) {
+			$template = get_option( 'pfadi_mail_template_activity' );
+		} else {
+			$template = get_option( 'pfadi_mail_template_announcement' );
+		}
+
+		if ( empty( $template ) ) {
+			// Default Template
+			ob_start();
+			?>
+			<!DOCTYPE html>
+			<html>
+			<head>
+				<style>
+					body { font-family: sans-serif; line-height: 1.6; }
+					.container { max-width: 600px; margin: 0 auto; padding: 20px; }
+					h1 { color: #333; }
+					.meta { background: #f9f9f9; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
+					.label { font-weight: bold; }
+				</style>
+			</head>
+			<body>
+				<div class="container">
+					<h1><?php echo $placeholders['{title}']; ?></h1>
+					
+					<div class="meta">
+						<p><span class="label"><?php _e( 'Wann:', 'wp-pfadi-manager' ); ?></span> <?php echo $placeholders['{date_str}']; ?></p>
+						<?php if ( 'activity' === $post->post_type ) : ?>
+							<p><span class="label"><?php _e( 'Wo:', 'wp-pfadi-manager' ); ?></span> <?php echo $placeholders['{location}']; ?></p>
+						<?php endif; ?>
+					</div>
+
 					<?php if ( 'activity' === $post->post_type ) : ?>
-						<?php
-						$location = get_post_meta( $post->ID, '_pfadi_location', true );
-						?>
-						<p><span class="label"><?php _e( 'Wo:', 'wp-pfadi-manager' ); ?></span> <?php echo esc_html( $location ); ?></p>
+						<p><span class="label"><?php _e( 'Mitnehmen:', 'wp-pfadi-manager' ); ?></span><br>
+						<?php echo $placeholders['{bring}']; ?></p>
+
+						<?php if ( ! empty( $placeholders['{special}'] ) ) : ?>
+							<p><span class="label"><?php _e( 'Besonderes:', 'wp-pfadi-manager' ); ?></span><br>
+							<?php echo $placeholders['{special}']; ?></p>
+						<?php endif; ?>
+
+						<hr>
+
+						<p><?php echo $placeholders['{greeting}']; ?></p>
+						<p><em><?php echo $placeholders['{leaders}']; ?></em></p>
+					<?php else : ?>
+						<div class="content">
+							<?php echo $placeholders['{content}']; ?>
+						</div>
 					<?php endif; ?>
 				</div>
-
-				<?php if ( 'activity' === $post->post_type ) : ?>
-					<?php
-					$bring = get_post_meta( $post->ID, '_pfadi_bring', true );
-					$special = get_post_meta( $post->ID, '_pfadi_special', true );
-					$greeting = get_post_meta( $post->ID, '_pfadi_greeting', true );
-					$leaders = get_post_meta( $post->ID, '_pfadi_leaders', true );
-					?>
-					<p><span class="label"><?php _e( 'Mitnehmen:', 'wp-pfadi-manager' ); ?></span><br>
-					<?php echo nl2br( esc_html( $bring ) ); ?></p>
-
-					<?php if ( ! empty( $special ) ) : ?>
-						<p><span class="label"><?php _e( 'Besonderes:', 'wp-pfadi-manager' ); ?></span><br>
-						<?php echo nl2br( esc_html( $special ) ); ?></p>
-					<?php endif; ?>
-
-					<hr>
-
-					<p><?php echo esc_html( $greeting ); ?></p>
-					<p><em><?php echo esc_html( $leaders ); ?></em></p>
-				<?php else : ?>
-					<div class="content">
-						<?php echo wpautop( wp_kses_post( $post->post_content ) ); ?>
-					</div>
-				<?php endif; ?>
-			</div>
-		</body>
-		</html>
-		<?php
-		return ob_get_clean();
+			</body>
+			</html>
+			<?php
+			return ob_get_clean();
+		} else {
+			// Custom Template
+			return str_replace( array_keys( $placeholders ), array_values( $placeholders ), $template );
+		}
+		return ob_get_clean(); // Should be unreachable but safe
 	}
 }
