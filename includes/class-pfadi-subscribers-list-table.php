@@ -112,20 +112,23 @@ class Pfadi_Subscribers_List_Table extends WP_List_Table {
 	}
 
 	public function process_bulk_action() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
 		global $wpdb;
 		$table_name = $wpdb->prefix . 'pfadi_subscribers';
 
 		if ( 'delete' === $this->current_action() ) {
 			$nonce = esc_attr( $_REQUEST['_wpnonce'] );
 			if ( ! wp_verify_nonce( $nonce, 'delete_subscriber_' . $_REQUEST['subscriber'] ) ) {
-				die( 'Go get a life script kiddies' );
+				wp_die( 'Security check failed' );
 			}
 			$wpdb->delete( $table_name, array( 'id' => absint( $_REQUEST['subscriber'] ) ) );
 		}
 
 		if ( 'bulk-delete' === $this->current_action() ) {
-			// Verify nonce for bulk action if needed, though WP_List_Table handles some of this.
-			// Ideally we should check nonce here too but standard implementation often relies on the form submission.
+			check_admin_referer( 'bulk-subscribers' );
 			
 			if ( isset( $_POST['subscriber'] ) && is_array( $_POST['subscriber'] ) ) {
 				foreach ( $_POST['subscriber'] as $subscriber_id ) {

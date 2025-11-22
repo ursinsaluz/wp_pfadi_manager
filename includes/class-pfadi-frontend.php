@@ -15,14 +15,22 @@ class Pfadi_Frontend {
 	}
 
 	public function enqueue_scripts() {
-		wp_enqueue_style( 'pfadi-style', PFADI_MANAGER_URL . 'assets/css/style.css', array(), '1.0.0' );
-		wp_enqueue_style( 'pfadi-news-style', PFADI_MANAGER_URL . 'assets/css/pfadi-news.css', array(), '1.0.0' );
-		wp_enqueue_script( 'pfadi-frontend-js', PFADI_MANAGER_URL . 'assets/js/pfadi-frontend.js', array(), '1.0.0', true );
-		wp_enqueue_script( 'pfadi-news-js', PFADI_MANAGER_URL . 'assets/js/pfadi-news.js', array( 'jquery' ), '1.0.0', true );
-		wp_localize_script( 'pfadi-frontend-js', 'pfadi_ajax', array(
-			'ajax_url' => admin_url( 'admin-ajax.php' ),
-			'nonce'    => wp_create_nonce( 'pfadi_subscribe_nonce' ),
-		) );
+		global $post;
+
+		if ( is_a( $post, 'WP_Post' ) && ( 
+			has_shortcode( $post->post_content, 'pfadi_board' ) || 
+			has_shortcode( $post->post_content, 'pfadi_subscribe' ) || 
+			has_shortcode( $post->post_content, 'pfadi_news' ) 
+		) ) {
+			wp_enqueue_style( 'pfadi-style', PFADI_MANAGER_URL . 'assets/css/style.css', array(), '1.0.0' );
+			wp_enqueue_style( 'pfadi-news-style', PFADI_MANAGER_URL . 'assets/css/pfadi-news.css', array(), '1.0.0' );
+			wp_enqueue_script( 'pfadi-frontend-js', PFADI_MANAGER_URL . 'assets/js/pfadi-frontend.js', array(), '1.0.0', true );
+			wp_enqueue_script( 'pfadi-news-js', PFADI_MANAGER_URL . 'assets/js/pfadi-news.js', array( 'jquery' ), '1.0.0', true );
+			wp_localize_script( 'pfadi-frontend-js', 'pfadi_ajax', array(
+				'ajax_url' => admin_url( 'admin-ajax.php' ),
+				'nonce'    => wp_create_nonce( 'pfadi_subscribe_nonce' ),
+			) );
+		}
 	}
 
 	public function render_board( $atts ) {
@@ -588,6 +596,8 @@ class Pfadi_Frontend {
 		if ( $query->have_posts() ) :
 			if ( 'table' === $view ) {
 				$this->render_table_view( $query );
+			} elseif ( 'list' === $view ) {
+				$this->render_list_view( $query );
 			} else {
 				$this->render_card_view( $query );
 			}

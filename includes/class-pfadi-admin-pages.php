@@ -172,6 +172,7 @@ class Pfadi_Admin_Pages {
 			</div>
 
 			<form method="post">
+				<?php wp_nonce_field( 'bulk-subscribers' ); ?>
 				<?php
 				$list_table->display();
 				?>

@@ -21,7 +21,7 @@ class Pfadi_Cron {
 		$sql = $wpdb->prepare( "
 			UPDATE $wpdb->posts p
 			INNER JOIN $wpdb->postmeta pm ON p.ID = pm.post_id
-			SET p.post_status = 'draft'
+			SET p.post_status = 'archived'
 			WHERE p.post_type = 'activity'
 			AND p.post_status = 'publish'
 			AND pm.meta_key = '_pfadi_end_time'
