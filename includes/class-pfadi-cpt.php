@@ -60,20 +60,21 @@ class Pfadi_CPT {
 		register_post_type( 'activity', $args );
 
 		// Register Announcement CPT
+		// Register Announcement CPT
 		$labels_announcement = array(
-			'name'                  => 'Mitteilungen',
-			'singular_name'         => 'Mitteilung',
-			'menu_name'             => 'Mitteilungen',
-			'name_admin_bar'        => 'Mitteilung',
-			'add_new'               => 'Erstellen',
-			'add_new_item'          => 'Neue Mitteilung erstellen',
-			'new_item'              => 'Neue Mitteilung',
-			'edit_item'             => 'Mitteilung bearbeiten',
-			'view_item'             => 'Mitteilung ansehen',
-			'all_items'             => 'Alle Mitteilungen',
-			'search_items'          => 'Mitteilungen suchen',
-			'not_found'             => 'Keine Mitteilungen gefunden.',
-			'not_found_in_trash'    => 'Keine Mitteilungen im Papierkorb gefunden.',
+			'name'                  => _x( 'Mitteilungen', 'Post Type General Name', 'wp-pfadi-manager' ),
+			'singular_name'         => _x( 'Mitteilung', 'Post Type Singular Name', 'wp-pfadi-manager' ),
+			'menu_name'             => __( 'Mitteilungen', 'wp-pfadi-manager' ),
+			'name_admin_bar'        => __( 'Mitteilung', 'wp-pfadi-manager' ),
+			'add_new'               => __( 'Erstellen', 'wp-pfadi-manager' ),
+			'add_new_item'          => __( 'Neue Mitteilung erstellen', 'wp-pfadi-manager' ),
+			'new_item'              => __( 'Neue Mitteilung', 'wp-pfadi-manager' ),
+			'edit_item'             => __( 'Mitteilung bearbeiten', 'wp-pfadi-manager' ),
+			'view_item'             => __( 'Mitteilung ansehen', 'wp-pfadi-manager' ),
+			'all_items'             => __( 'Alle Mitteilungen', 'wp-pfadi-manager' ),
+			'search_items'          => __( 'Mitteilungen suchen', 'wp-pfadi-manager' ),
+			'not_found'             => __( 'Keine Mitteilungen gefunden.', 'wp-pfadi-manager' ),
+			'not_found_in_trash'    => __( 'Keine Mitteilungen im Papierkorb gefunden.', 'wp-pfadi-manager' ),
 		);
 
 		$args_announcement = array(

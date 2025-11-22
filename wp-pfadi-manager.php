@@ -38,5 +38,11 @@ require_once PFADI_MANAGER_PATH . 'includes/class-pfadi-loader.php';
 function run_pfadi_manager() {
 	$plugin = new Pfadi_Loader();
 	$plugin->run();
+	
+	add_action( 'plugins_loaded', 'pfadi_manager_load_textdomain' );
+}
+
+function pfadi_manager_load_textdomain() {
+	load_plugin_textdomain( 'wp-pfadi-manager', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
 }
 run_pfadi_manager();

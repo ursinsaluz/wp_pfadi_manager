@@ -31,39 +31,26 @@ jQuery(document).ready(function ($) {
             // However, we are inside updateFields which might be called on load too?
             // The spec says: "Event: Wenn eine Stufe (z.B. "Wölfe") angeklickt wird."
 
-            // Let's simplify: iterate and find the corresponding slug
-            // We need to map label to slug.
-            // pfadiSettings keys are slugs.
-
-            // Helper to find slug from label (simple lowercase/sanitize approximation)
-            // Ideally we would have the slug in the data attribute but WP checklist gives us value=term_id
-            // We rely on the label text which matches our hardcoded units.
-
-            var unitSlug = selectedUnits[0].toLowerCase().replace(/ö/g, 'o').replace(/ä/g, 'a').replace(/ü/g, 'u'); // Very basic sanitization
-            // Better: iterate through pfadiSettings keys and match?
-            // Let's try to match the label.
-
-            // Actually, let's just look at the last checked item if we want to be reactive to the click?
-            // No, let's just loop and pick the first valid one.
+            // Map labels to slugs
+            var slugMap = {
+                'Biber': 'biber',
+                'Wölfe': 'wolfe',
+                'Pfadis': 'pfadis',
+                'Pios': 'pios',
+                'Rover': 'rover',
+                'Abteilung': 'abteilung'
+            };
 
             for (var i = 0; i < selectedUnits.length; i++) {
-                var slug = selectedUnits[i].toLowerCase().replace(/ö/g, 'oe').replace(/ä/g, 'ae').replace(/ü/g, 'ue');
-                // The sanitize_title in PHP does: Wölfe -> wolfe (default WP) or woelfe (german locale)?
-                // Let's assume standard WP sanitize_title behavior for 'Wölfe' -> 'wolfe'
-                if (slug === 'wolfe') slug = 'wolfe'; // wait, sanitize_title('Wölfe') is usually 'wolfe'
+                var label = selectedUnits[i];
+                var slug = slugMap[label];
 
-                // Let's try to match loosely
-                if (pfadiSettings[slug]) {
+                if (slug && pfadiSettings[slug]) {
                     greeting = pfadiSettings[slug].greeting;
                     leaders = pfadiSettings[slug].leaders;
-                    break; // Found one
-                }
-
-                // Try 'wolfe' specifically for Wölfe
-                if (selectedUnits[i] === 'Wölfe' && pfadiSettings['wolfe']) {
-                    greeting = pfadiSettings['wolfe'].greeting;
-                    leaders = pfadiSettings['wolfe'].leaders;
-                    break;
+                    starttime = pfadiSettings[slug].starttime;
+                    endtime = pfadiSettings[slug].endtime;
+                    break; // Take the first valid one found
                 }
             }
         }
@@ -72,8 +59,29 @@ jQuery(document).ready(function ($) {
         // Spec says: "Aktion: Das Script lädt die in 3.1 definierten Werte (Gruss & Leitung) und fügt sie in die Textfelder ein."
         // It implies overwriting or filling. Let's fill.
 
-        if (greeting) $('#pfadi_greeting').val(greeting);
-        if (leaders) $('#pfadi_leaders').val(leaders);
+        // Update Greeting and Leaders if empty
+        if (greeting && !$('#pfadi_greeting').val()) {
+            $('#pfadi_greeting').val(greeting);
+        }
+        if (leaders && !$('#pfadi_leaders').val()) {
+            $('#pfadi_leaders').val(leaders);
+        }
+
+        // Update Times (preserve date)
+        if (starttime) {
+            var currentStart = $('#pfadi_start_time').val(); // YYYY-MM-DDTHH:mm
+            if (currentStart && currentStart.indexOf('T') > -1) {
+                var parts = currentStart.split('T');
+                $('#pfadi_start_time').val(parts[0] + 'T' + starttime);
+            }
+        }
+        if (endtime) {
+            var currentEnd = $('#pfadi_end_time').val();
+            if (currentEnd && currentEnd.indexOf('T') > -1) {
+                var parts = currentEnd.split('T');
+                $('#pfadi_end_time').val(parts[0] + 'T' + endtime);
+            }
+        }
     }
 
     // Bind change event to checkboxes

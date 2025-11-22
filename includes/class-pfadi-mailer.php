@@ -98,11 +98,31 @@ class Pfadi_Mailer {
 
 		Pfadi_Logger::log( "Found " . count( $recipients ) . " recipients for post ID: {$post->ID}." );
 
-		$subject_template = get_option( 'pfadi_mail_subject', 'Neue Pfadi-Aktivität: {title}' );
-		if ( 'announcement' === $post->post_type ) {
-			$subject_template = 'Neue Mitteilung: {title}';
+		// Get Site Name
+		$site_name = get_bloginfo( 'name' );
+
+		// Get Unit Name(s)
+		$unit_names = array();
+		if ( $is_abteilung || count( $units ) > 1 ) {
+			$unit_names[] = __( 'Abteilungs', 'wp-pfadi-manager' );
+		} else {
+			$term_objects = wp_get_post_terms( $post->ID, 'activity_unit' );
+			foreach ( $term_objects as $term ) {
+				$unit_names[] = $term->name;
+			}
 		}
-		$subject = str_replace( '{title}', $post->post_title, $subject_template );
+		$unit_str = implode( ', ', $unit_names );
+		if ( empty( $unit_str ) ) {
+			$unit_str = 'Pfadi';
+		}
+
+		// Construct Subject: [Site Name] {Unit}-Aktivität: {Title}
+		$subject = sprintf( __( '[%s] %s-Aktivität: %s', 'wp-pfadi-manager' ), $site_name, $unit_str, $post->post_title );
+
+		if ( 'announcement' === $post->post_type ) {
+			$subject = sprintf( __( '[%s] Mitteilung: %s', 'wp-pfadi-manager' ), $site_name, $post->post_title );
+		}
+
 		$message = $this->get_email_template( $post );
 		$headers = array( 'Content-Type: text/html; charset=UTF-8' );
 
@@ -120,8 +140,32 @@ class Pfadi_Mailer {
 		$start = get_post_meta( $post->ID, '_pfadi_start_time', true );
 		$end = get_post_meta( $post->ID, '_pfadi_end_time', true );
 		
-		$start_date = date_i18n( 'd.m.Y H:i', strtotime( $start ) );
-		$end_date = date_i18n( 'd.m.Y H:i', strtotime( $end ) );
+		$start_ts = strtotime( $start );
+		$end_ts = strtotime( $end );
+
+		// Date Formatting Logic
+		// Format: Samstag, 21.11.2025 von 14:00 bis 17:00 (if same day)
+		// Format: Samstag, 21.11.2025 14:00 bis Sonntag, 22.11.2025 14:00 (if different day)
+
+		$start_day = date( 'Ymd', $start_ts );
+		$end_day = date( 'Ymd', $end_ts );
+
+		if ( $start_day === $end_day ) {
+			// Same day
+			$date_str = sprintf(
+				__( '%s von %s bis %s', 'wp-pfadi-manager' ),
+				date_i18n( 'l, d.m.Y', $start_ts ),
+				date_i18n( 'H:i', $start_ts ),
+				date_i18n( 'H:i', $end_ts )
+			);
+		} else {
+			// Different days
+			$date_str = sprintf(
+				__( '%s bis %s', 'wp-pfadi-manager' ),
+				date_i18n( 'l, d.m.Y H:i', $start_ts ),
+				date_i18n( 'l, d.m.Y H:i', $end_ts )
+			);
+		}
 
 		ob_start();
 		?>
@@ -141,12 +185,12 @@ class Pfadi_Mailer {
 				<h1><?php echo esc_html( $post->post_title ); ?></h1>
 				
 				<div class="meta">
-					<p><span class="label">Wann:</span> <?php echo esc_html( $start_date . ' bis ' . $end_date ); ?></p>
+					<p><span class="label"><?php _e( 'Wann:', 'wp-pfadi-manager' ); ?></span> <?php echo esc_html( $date_str ); ?></p>
 					<?php if ( 'activity' === $post->post_type ) : ?>
 						<?php
 						$location = get_post_meta( $post->ID, '_pfadi_location', true );
 						?>
-						<p><span class="label">Wo:</span> <?php echo esc_html( $location ); ?></p>
+						<p><span class="label"><?php _e( 'Wo:', 'wp-pfadi-manager' ); ?></span> <?php echo esc_html( $location ); ?></p>
 					<?php endif; ?>
 				</div>
 
@@ -157,11 +201,11 @@ class Pfadi_Mailer {
 					$greeting = get_post_meta( $post->ID, '_pfadi_greeting', true );
 					$leaders = get_post_meta( $post->ID, '_pfadi_leaders', true );
 					?>
-					<p><span class="label">Mitnehmen:</span><br>
+					<p><span class="label"><?php _e( 'Mitnehmen:', 'wp-pfadi-manager' ); ?></span><br>
 					<?php echo nl2br( esc_html( $bring ) ); ?></p>
 
 					<?php if ( ! empty( $special ) ) : ?>
-						<p><span class="label">Besonderes:</span><br>
+						<p><span class="label"><?php _e( 'Besonderes:', 'wp-pfadi-manager' ); ?></span><br>
 						<?php echo nl2br( esc_html( $special ) ); ?></p>
 					<?php endif; ?>
 

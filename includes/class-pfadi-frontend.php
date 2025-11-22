@@ -5,6 +5,7 @@ class Pfadi_Frontend {
 	public function __construct() {
 		add_shortcode( 'pfadi_board', array( $this, 'render_board' ) );
 		add_shortcode( 'pfadi_subscribe', array( $this, 'render_subscribe' ) );
+		add_shortcode( 'pfadi_news', array( $this, 'render_news' ) );
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
 		add_action( 'init', array( $this, 'handle_subscription_actions' ) );
 		add_action( 'wp_ajax_pfadi_subscribe', array( $this, 'handle_ajax_subscription' ) );
@@ -15,7 +16,9 @@ class Pfadi_Frontend {
 
 	public function enqueue_scripts() {
 		wp_enqueue_style( 'pfadi-style', PFADI_MANAGER_URL . 'assets/css/style.css', array(), '1.0.0' );
+		wp_enqueue_style( 'pfadi-news-style', PFADI_MANAGER_URL . 'assets/css/pfadi-news.css', array(), '1.0.0' );
 		wp_enqueue_script( 'pfadi-frontend-js', PFADI_MANAGER_URL . 'assets/js/pfadi-frontend.js', array(), '1.0.0', true );
+		wp_enqueue_script( 'pfadi-news-js', PFADI_MANAGER_URL . 'assets/js/pfadi-news.js', array( 'jquery' ), '1.0.0', true );
 		wp_localize_script( 'pfadi-frontend-js', 'pfadi_ajax', array(
 			'ajax_url' => admin_url( 'admin-ajax.php' ),
 			'nonce'    => wp_create_nonce( 'pfadi_subscribe_nonce' ),
@@ -47,7 +50,7 @@ class Pfadi_Frontend {
 				<?php endforeach; ?>
 			</ul>
 
-			<div id="pfadi-activities-content" data-view="<?php echo esc_attr( $atts['view'] ); ?>">
+			<div class="pfadi-activities-content" data-view="<?php echo esc_attr( $atts['view'] ); ?>">
 				<?php
 				$args = array(
 					'post_type'      => 'activity',
@@ -58,7 +61,7 @@ class Pfadi_Frontend {
 					'meta_query'     => array(
 						array(
 							'key'     => '_pfadi_end_time',
-							'value'   => current_time( 'Y-m-d\TH:i' ),
+							'value'   => current_time( 'Y-m-d H:i' ),
 							'compare' => '>',
 							'type'    => 'DATETIME',
 						),
@@ -80,12 +83,14 @@ class Pfadi_Frontend {
 				if ( $query->have_posts() ) :
 					if ( 'table' === $atts['view'] ) {
 						$this->render_table_view( $query );
+					} elseif ( 'list' === $atts['view'] ) {
+						$this->render_list_view( $query );
 					} else {
 						$this->render_card_view( $query );
 					}
 					wp_reset_postdata();
 				else :
-					echo '<p>Keine aktuellen Aktivitäten.</p>';
+					echo '<p>' . __( 'Keine aktuellen Aktivitäten.', 'wp-pfadi-manager' ) . '</p>';
 				endif;
 				?>
 			</div>
@@ -102,14 +107,38 @@ class Pfadi_Frontend {
 			$location = get_post_meta( get_the_ID(), '_pfadi_location', true );
 			$bring = get_post_meta( get_the_ID(), '_pfadi_bring', true );
 			
-			$start_date = date_i18n( 'd.m.Y H:i', strtotime( $start ) );
+			$start_date = date_i18n( 'l, d.m.Y H:i', strtotime( $start ) );
 			$end_date = date_i18n( 'H:i', strtotime( $end ) );
+			
+			$units = get_the_terms( get_the_ID(), 'activity_unit' );
+			$unit_tags = '';
+			if ( $units && ! is_wp_error( $units ) ) {
+				$unit_tags = '<div class="pfadi-tags">';
+				foreach ( $units as $unit ) {
+					$unit_tags .= '<span class="pfadi-tag">' . esc_html( $unit->name ) . '</span>';
+				}
+				$unit_tags .= '</div>';
+			}
 			?>
 			<div class="pfadi-card">
 				<h3><?php the_title(); ?></h3>
-				<p><strong>Wann:</strong> <?php echo esc_html( $start_date . ' - ' . $end_date ); ?></p>
-				<p><strong>Wo:</strong> <?php echo esc_html( $location ); ?></p>
-				<p><strong>Mitnehmen:</strong><br><?php echo nl2br( esc_html( $bring ) ); ?></p>
+				<p><strong><?php _e( 'Wann:', 'wp-pfadi-manager' ); ?></strong> <?php echo esc_html( $start_date . ' - ' . $end_date ); ?></p>
+				<p><strong><?php _e( 'Wo:', 'wp-pfadi-manager' ); ?></strong> <?php echo esc_html( $location ); ?></p>
+				<p><strong><?php _e( 'Mitnehmen:', 'wp-pfadi-manager' ); ?></strong><br><?php echo nl2br( esc_html( $bring ) ); ?></p>
+				<?php
+				$greeting = get_post_meta( get_the_ID(), '_pfadi_greeting', true );
+				$leaders = get_post_meta( get_the_ID(), '_pfadi_leaders', true );
+				
+				if ( ! empty( $greeting ) || ! empty( $leaders ) ) :
+					?>
+					<p>
+						<?php if ( ! empty( $greeting ) ) : ?>
+							<strong><?php echo esc_html( $greeting ); ?></strong><br>
+						<?php endif; ?>
+						<?php echo esc_html( $leaders ); ?>
+					</p>
+				<?php endif; ?>
+				<?php echo $unit_tags; ?>
 			</div>
 			<?php
 		endwhile;
@@ -118,7 +147,7 @@ class Pfadi_Frontend {
 
 	private function render_table_view( $query ) {
 		echo '<table class="pfadi-table">';
-		echo '<thead><tr><th>Aktivität</th><th>Wann</th><th>Wo</th><th>Mitnehmen</th></tr></thead>';
+		echo '<thead><tr><th>' . __( 'Aktivität', 'wp-pfadi-manager' ) . '</th><th>' . __( 'Wann', 'wp-pfadi-manager' ) . '</th><th>' . __( 'Wo', 'wp-pfadi-manager' ) . '</th><th>' . __( 'Mitnehmen', 'wp-pfadi-manager' ) . '</th><th>' . __( 'Stufen', 'wp-pfadi-manager' ) . '</th></tr></thead>';
 		echo '<tbody>';
 		while ( $query->have_posts() ) : $query->the_post();
 			$start = get_post_meta( get_the_ID(), '_pfadi_start_time', true );
@@ -126,18 +155,191 @@ class Pfadi_Frontend {
 			$location = get_post_meta( get_the_ID(), '_pfadi_location', true );
 			$bring = get_post_meta( get_the_ID(), '_pfadi_bring', true );
 			
-			$start_date = date_i18n( 'd.m.Y H:i', strtotime( $start ) );
+			$start_date = date_i18n( 'l, d.m.Y H:i', strtotime( $start ) );
 			$end_date = date_i18n( 'H:i', strtotime( $end ) );
+
+			$units = get_the_terms( get_the_ID(), 'activity_unit' );
+			$unit_tags = '';
+			if ( $units && ! is_wp_error( $units ) ) {
+				$unit_tags = '<div class="pfadi-tags">';
+				foreach ( $units as $unit ) {
+					$unit_tags .= '<span class="pfadi-tag">' . esc_html( $unit->name ) . '</span>';
+				}
+				$unit_tags .= '</div>';
+			}
 			?>
 			<tr>
 				<td><?php the_title(); ?></td>
 				<td><?php echo esc_html( $start_date . ' - ' . $end_date ); ?></td>
 				<td><?php echo esc_html( $location ); ?></td>
 				<td><?php echo nl2br( esc_html( $bring ) ); ?></td>
+				<td><?php echo $unit_tags; ?></td>
 			</tr>
 			<?php
 		endwhile;
 		echo '</tbody></table>';
+	}
+
+	private function render_list_view( $query ) {
+		$posts = $query->posts;
+		if ( empty( $posts ) ) return;
+
+		echo '<div class="pfadi-list-view">';
+		
+		// Left Column: List
+		echo '<div class="pfadi-list-sidebar">';
+		foreach ( $posts as $index => $post ) {
+			$start = get_post_meta( $post->ID, '_pfadi_start_time', true );
+			$start_date = date_i18n( 'd.m.Y', strtotime( $start ) );
+			$title = get_the_title( $post );
+			
+			// Get unit name
+			$units = get_the_terms( $post->ID, 'activity_unit' );
+			$unit_name = '';
+			if ( $units && ! is_wp_error( $units ) ) {
+				$unit_name = $units[0]->name;
+			}
+
+			$active_class = ( 0 === $index ) ? 'active' : '';
+			
+			echo '<div class="pfadi-list-item ' . esc_attr( $active_class ) . '" data-id="' . esc_attr( $post->ID ) . '">';
+			echo '<div class="pfadi-list-date">' . esc_html( $start_date . ' - ' . $title ) . '</div>';
+			if ( $unit_name ) {
+				echo '<div class="pfadi-list-unit">' . __( 'Stufe:', 'wp-pfadi-manager' ) . ' ' . esc_html( $unit_name ) . '</div>';
+			}
+			echo '</div>';
+		}
+		echo '</div>'; // .pfadi-list-sidebar
+
+		// Right Column: Content
+		echo '<div class="pfadi-list-content-area">';
+		foreach ( $posts as $index => $post ) {
+			$start = get_post_meta( $post->ID, '_pfadi_start_time', true );
+			$end = get_post_meta( $post->ID, '_pfadi_end_time', true );
+			$location = get_post_meta( $post->ID, '_pfadi_location', true );
+			$bring = get_post_meta( $post->ID, '_pfadi_bring', true );
+			$greeting = get_post_meta( $post->ID, '_pfadi_greeting', true );
+			$leaders = get_post_meta( $post->ID, '_pfadi_leaders', true );
+			
+			$start_time = date_i18n( 'H:i', strtotime( $start ) );
+			$end_time = date_i18n( 'H:i', strtotime( $end ) );
+			
+			// Get unit name again for display
+			$units = get_the_terms( $post->ID, 'activity_unit' );
+			$unit_name = '';
+			if ( $units && ! is_wp_error( $units ) ) {
+				$unit_name = $units[0]->name;
+			}
+
+			$active_class = ( 0 === $index ) ? 'active' : '';
+
+			echo '<div class="pfadi-list-content ' . esc_attr( $active_class ) . '" data-id="' . esc_attr( $post->ID ) . '">';
+			echo '<h3>' . get_the_title( $post ) . '</h3>';
+			
+			if ( $unit_name ) {
+				echo '<p class="pfadi-detail-row"><strong>' . __( 'Stufe:', 'wp-pfadi-manager' ) . '</strong> ' . esc_html( $unit_name ) . '</p>';
+			}
+			
+			echo '<p class="pfadi-detail-row"><strong>' . __( 'Besammlung:', 'wp-pfadi-manager' ) . '</strong> ' . esc_html( $start_time . ' ' . $location ) . '</p>';
+			echo '<p class="pfadi-detail-row"><strong>' . __( 'Verabschiedung:', 'wp-pfadi-manager' ) . '</strong> ' . esc_html( $end_time . ' ' . $location ) . '</p>';
+			
+			echo '<p class="pfadi-detail-row"><strong>' . __( 'Mitnehmen:', 'wp-pfadi-manager' ) . '</strong></p>';
+			echo '<div class="pfadi-bring-list">' . nl2br( esc_html( $bring ) ) . '</div>';
+			
+			if ( ! empty( $greeting ) || ! empty( $leaders ) ) {
+				echo '<div class="pfadi-signature">';
+				if ( ! empty( $greeting ) ) {
+					echo '<p><strong>' . esc_html( $greeting ) . '</strong></p>';
+				}
+				if ( ! empty( $leaders ) ) {
+					echo '<p>' . esc_html( $leaders ) . '</p>';
+				}
+				echo '</div>';
+			}
+
+			echo '</div>';
+		}
+		echo '</div>'; // .pfadi-list-content-area
+
+		echo '</div>'; // .pfadi-list-view
+	}
+
+	public function render_news( $atts ) {
+		$atts = shortcode_atts( array(
+			'view' => 'carousel', // carousel or banner
+			'limit' => -1,
+		), $atts );
+
+		$args = array(
+			'post_type'      => 'announcement',
+			'posts_per_page' => $atts['limit'],
+			'meta_key'       => '_pfadi_end_time',
+			'orderby'        => 'date',
+			'order'          => 'DESC',
+			'meta_query'     => array(
+				'relation' => 'AND',
+				array(
+					'key'     => '_pfadi_start_time',
+					'value'   => current_time( 'Y-m-d H:i' ),
+					'compare' => '<=',
+					'type'    => 'DATETIME',
+				),
+				array(
+					'key'     => '_pfadi_end_time',
+					'value'   => current_time( 'Y-m-d H:i' ),
+					'compare' => '>',
+					'type'    => 'DATETIME',
+				),
+			),
+		);
+
+		$query = new WP_Query( $args );
+
+		ob_start();
+		if ( $query->have_posts() ) {
+			if ( 'banner' === $atts['view'] ) {
+				$this->render_news_banner( $query );
+			} else {
+				$this->render_news_carousel( $query );
+			}
+		}
+		wp_reset_postdata();
+		return ob_get_clean();
+	}
+
+	private function render_news_banner( $query ) {
+		// Only show the latest one
+		$query->the_post();
+		?>
+		<div class="pfadi-news-banner">
+			<div class="pfadi-news-content">
+				<strong><?php the_title(); ?>:</strong> <?php echo get_the_excerpt(); ?>
+				<a href="<?php the_permalink(); ?>" class="pfadi-news-link"><?php _e( 'Mehr lesen', 'wp-pfadi-manager' ); ?></a>
+			</div>
+		</div>
+		<?php
+	}
+
+	private function render_news_carousel( $query ) {
+		?>
+		<div class="pfadi-news-carousel-container">
+			<div class="pfadi-news-carousel">
+				<?php while ( $query->have_posts() ) : $query->the_post(); ?>
+					<div class="pfadi-news-item">
+						<div class="pfadi-news-card">
+							<h4><?php the_title(); ?></h4>
+							<div class="pfadi-news-excerpt">
+								<?php the_excerpt(); ?>
+							</div>
+							<a href="<?php the_permalink(); ?>" class="pfadi-news-read-more"><?php _e( 'Weiterlesen', 'wp-pfadi-manager' ); ?></a>
+						</div>
+					</div>
+				<?php endwhile; ?>
+			</div>
+			<button class="pfadi-carousel-prev" aria-label="Previous">&lt;</button>
+			<button class="pfadi-carousel-next" aria-label="Next">&gt;</button>
+		</div>
+		<?php
 	}
 
 	public function render_subscribe( $atts ) {
@@ -151,12 +353,12 @@ class Pfadi_Frontend {
 				<p>
 				<p>
 					<label>
-						E-Mail Adresse:
+						<?php _e( 'E-Mail Adresse:', 'wp-pfadi-manager' ); ?>
 						<input type="email" name="pfadi_email" required>
 					</label>
 				</p>
 				<p>
-					<strong>Stufen wählen:</strong><br>
+					<strong><?php _e( 'Stufen wählen:', 'wp-pfadi-manager' ); ?></strong><br>
 					<?php foreach ( $units as $unit ) : ?>
 						<label>
 							<input type="checkbox" name="pfadi_units[]" value="<?php echo esc_attr( $unit->term_id ); ?>">
@@ -164,9 +366,9 @@ class Pfadi_Frontend {
 						</label><br>
 					<?php endforeach; ?>
 				</p>
-				<p><em>Informationen der Abteilung sind automatisch inbegriffen.</em></p>
+				<p><em><?php _e( 'Informationen der Abteilung sind automatisch inbegriffen.', 'wp-pfadi-manager' ); ?></em></p>
 				<input type="hidden" name="pfadi_action" value="subscribe">
-				<input type="submit" value="Abonnieren">
+				<input type="submit" value="<?php esc_attr_e( 'Abonnieren', 'wp-pfadi-manager' ); ?>">
 			</form>
 		</div>
 		<?php
@@ -248,13 +450,13 @@ class Pfadi_Frontend {
 					'email' => urlencode( $email ),
 				), home_url() );
 
-				$subject = get_option( 'pfadi_confirm_subject', 'Pfadi Abo Bestätigen' );
-				$message = get_option( 'pfadi_confirm_message', 'Bitte bestätigen Sie Ihr Abo: {link}' );
+				$subject = get_option( 'pfadi_confirm_subject', __( 'Pfadi Abo Bestätigen', 'wp-pfadi-manager' ) );
+				$message = get_option( 'pfadi_confirm_message', __( 'Bitte bestätigen Sie Ihr Abo: {link}', 'wp-pfadi-manager' ) );
 				$message = str_replace( '{link}', $confirm_link, $message );
 
 				wp_mail( $email, $subject, $message );
 				
-				echo '<div class="pfadi-message">Bitte prüfen Sie Ihre E-Mails zur Bestätigung.</div>';
+				echo '<div class="pfadi-message">' . __( 'Bitte prüfen Sie Ihre E-Mails zur Bestätigung.', 'wp-pfadi-manager' ) . '</div>';
 			}
 		}
 
@@ -273,9 +475,9 @@ class Pfadi_Frontend {
 					array( 'status' => 'active' ),
 					array( 'id' => $subscriber->id )
 				);
-				echo '<div class="pfadi-message">Abo erfolgreich aktiviert!</div>';
+				echo '<div class="pfadi-message">' . __( 'Abo erfolgreich aktiviert!', 'wp-pfadi-manager' ) . '</div>';
 			} else {
-				echo '<div class="pfadi-message error">Ungültiger Link.</div>';
+				echo '<div class="pfadi-message error">' . __( 'Ungültiger Link.', 'wp-pfadi-manager' ) . '</div>';
 			}
 		}
 	}
@@ -290,7 +492,7 @@ class Pfadi_Frontend {
 
 		if ( ! is_email( $email ) ) {
 			Pfadi_Logger::log( "Invalid email: $email", 'error' );
-			wp_send_json_error( array( 'message' => 'Ungültige E-Mail Adresse.' ) );
+			wp_send_json_error( array( 'message' => __( 'Ungültige E-Mail Adresse.', 'wp-pfadi-manager' ) ) );
 		}
 
 		global $wpdb;
@@ -327,8 +529,8 @@ class Pfadi_Frontend {
 			'email' => urlencode( $email ),
 		), home_url() );
 
-		$subject = get_option( 'pfadi_confirm_subject', 'Pfadi Abo Bestätigen' );
-		$message = get_option( 'pfadi_confirm_message', 'Bitte bestätigen Sie Ihr Abo: {link}' );
+		$subject = get_option( 'pfadi_confirm_subject', __( 'Pfadi Abo Bestätigen', 'wp-pfadi-manager' ) );
+		$message = get_option( 'pfadi_confirm_message', __( 'Bitte bestätigen Sie Ihr Abo: {link}', 'wp-pfadi-manager' ) );
 		$message = str_replace( '{link}', $confirm_link, $message );
 
 		Pfadi_Logger::log( "Sending confirmation email to $email" );
@@ -341,10 +543,10 @@ class Pfadi_Frontend {
 
 		if ( $sent ) {
 			Pfadi_Logger::log( "Confirmation email sent successfully to $email" );
-			wp_send_json_success( array( 'message' => 'Du hast eine Email zur Bestätigung deiner Emailadresse erhalten.' ) );
+			wp_send_json_success( array( 'message' => __( 'Du hast eine Email zur Bestätigung deiner Emailadresse erhalten.', 'wp-pfadi-manager' ) ) );
 		} else {
 			Pfadi_Logger::log( "Failed to send confirmation email to $email", 'error' );
-			wp_send_json_error( array( 'message' => 'Das hat leider nicht geklappt. Bitte versuche es später noch einmal oder wende dich an admin@alvier.ch.' ) );
+			wp_send_json_error( array( 'message' => __( 'Das hat leider nicht geklappt. Bitte versuche es später noch einmal oder wende dich an admin@alvier.ch.', 'wp-pfadi-manager' ) ) );
 		}
 	}
 
@@ -363,7 +565,7 @@ class Pfadi_Frontend {
 			'meta_query'     => array(
 				array(
 					'key'     => '_pfadi_end_time',
-					'value'   => current_time( 'Y-m-d\TH:i' ),
+					'value'   => current_time( 'Y-m-d H:i' ),
 					'compare' => '>',
 					'type'    => 'DATETIME',
 				),
@@ -391,7 +593,7 @@ class Pfadi_Frontend {
 			}
 			wp_reset_postdata();
 		else :
-			echo '<p>Keine aktuellen Aktivitäten.</p>';
+			echo '<p>' . __( 'Keine aktuellen Aktivitäten.', 'wp-pfadi-manager' ) . '</p>';
 		endif;
 		$content = ob_get_clean();
 

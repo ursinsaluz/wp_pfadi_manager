@@ -17,10 +17,11 @@ class Pfadi_Subscribers_List_Table extends WP_List_Table {
 	public function get_columns() {
 		return array(
 			'cb'               => '<input type="checkbox" />',
-			'email'            => 'E-Mail',
-			'subscribed_units' => 'Abonnierte Stufen',
-			'status'           => 'Status',
-			'created_at'       => 'Erstellt am',
+			'cb'               => '<input type="checkbox" />',
+			'email'            => __( 'E-Mail', 'wp-pfadi-manager' ),
+			'subscribed_units' => __( 'Abonnierte Stufen', 'wp-pfadi-manager' ),
+			'status'           => __( 'Status', 'wp-pfadi-manager' ),
+			'created_at'       => __( 'Erstellt am', 'wp-pfadi-manager' ),
 		);
 	}
 
@@ -71,8 +72,8 @@ class Pfadi_Subscribers_List_Table extends WP_List_Table {
 
 	protected function column_email( $item ) {
 		$actions = array(
-			'edit'   => sprintf( '<a href="?post_type=activity&page=%s&action=%s&subscriber=%s">Bearbeiten</a>', $_REQUEST['page'], 'edit', $item->id ),
-			'delete' => sprintf( '<a href="?post_type=activity&page=%s&action=%s&subscriber=%s&_wpnonce=%s">Löschen</a>', $_REQUEST['page'], 'delete', $item->id, wp_create_nonce( 'delete_subscriber_' . $item->id ) ),
+			'edit'   => sprintf( '<a href="?post_type=activity&page=%s&action=%s&subscriber=%s">' . __( 'Bearbeiten', 'wp-pfadi-manager' ) . '</a>', $_REQUEST['page'], 'edit', $item->id ),
+			'delete' => sprintf( '<a href="?post_type=activity&page=%s&action=%s&subscriber=%s&_wpnonce=%s">' . __( 'Löschen', 'wp-pfadi-manager' ) . '</a>', $_REQUEST['page'], 'delete', $item->id, wp_create_nonce( 'delete_subscriber_' . $item->id ) ),
 		);
 
 		return sprintf( '%1$s %2$s', $item->email, $this->row_actions( $actions ) );
@@ -80,7 +81,7 @@ class Pfadi_Subscribers_List_Table extends WP_List_Table {
 
 	public function get_bulk_actions() {
 		return array(
-			'bulk-delete' => 'Löschen',
+			'bulk-delete' => __( 'Löschen', 'wp-pfadi-manager' ),
 		);
 	}
 

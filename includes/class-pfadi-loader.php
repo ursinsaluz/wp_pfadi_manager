@@ -21,7 +21,9 @@ class Pfadi_Loader {
 		require_once PFADI_MANAGER_PATH . 'includes/class-pfadi-mailer.php';
 		require_once PFADI_MANAGER_PATH . 'includes/class-pfadi-feeds.php';
 		require_once PFADI_MANAGER_PATH . 'includes/class-pfadi-cron.php';
+		require_once PFADI_MANAGER_PATH . 'includes/class-pfadi-cron.php';
 		require_once PFADI_MANAGER_PATH . 'includes/class-pfadi-admin-pages.php';
+		require_once PFADI_MANAGER_PATH . 'includes/class-pfadi-blocks.php';
 	}
 
 	private function define_admin_hooks() {
@@ -42,6 +44,7 @@ class Pfadi_Loader {
 	private function define_public_hooks() {
 		new Pfadi_Frontend();
 		new Pfadi_Feeds();
+		new Pfadi_Blocks();
 	}
 
 	public function run() {
