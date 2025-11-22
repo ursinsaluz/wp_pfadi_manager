@@ -14,30 +14,20 @@ class Pfadi_Cron {
 	}
 
 	public function run_cleanup() {
-		$args = array(
-			'post_type'      => 'activity',
-			'posts_per_page' => -1,
-			'post_status'    => 'publish',
-			'meta_query'     => array(
-				array(
-					'key'     => '_pfadi_end_time',
-					'value'   => current_time( 'Y-m-d\TH:i' ),
-					'compare' => '<',
-					'type'    => 'DATETIME',
-				),
-			),
-		);
+		global $wpdb;
+		
+		// Direct SQL update for better performance
+		// Sets all published activities with end_time < NOW to draft
+		$sql = $wpdb->prepare( "
+			UPDATE $wpdb->posts p
+			INNER JOIN $wpdb->postmeta pm ON p.ID = pm.post_id
+			SET p.post_status = 'draft'
+			WHERE p.post_type = 'activity'
+			AND p.post_status = 'publish'
+			AND pm.meta_key = '_pfadi_end_time'
+			AND pm.meta_value < %s
+		", current_time( 'Y-m-d\TH:i' ) );
 
-		$query = new WP_Query( $args );
-
-		while ( $query->have_posts() ) {
-			$query->the_post();
-			$update_args = array(
-				'ID'          => get_the_ID(),
-				'post_status' => 'draft',
-			);
-			wp_update_post( $update_args );
-		}
-		wp_reset_postdata();
+		$wpdb->query( $sql );
 	}
 }

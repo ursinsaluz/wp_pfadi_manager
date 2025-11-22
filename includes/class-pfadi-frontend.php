@@ -28,10 +28,7 @@ class Pfadi_Frontend {
 		), $atts );
 
 		// Filter dropdown
-		$units = get_terms( array(
-			'taxonomy' => 'activity_unit',
-			'hide_empty' => false,
-		) );
+		$units = $this->get_sorted_units();
 
 		$selected_unit = isset( $_GET['pfadi_unit'] ) ? sanitize_text_field( $_GET['pfadi_unit'] ) : '';
 
@@ -144,11 +141,7 @@ class Pfadi_Frontend {
 	}
 
 	public function render_subscribe( $atts ) {
-		$units = get_terms( array(
-			'taxonomy' => 'activity_unit',
-			'hide_empty' => false,
-			'exclude' => get_term_by( 'slug', 'abteilung', 'activity_unit' )->term_id, // Exclude Abteilung as it's auto-included
-		) );
+		$units = $this->get_sorted_units( true );
 
 		ob_start();
 		?>
@@ -180,7 +173,38 @@ class Pfadi_Frontend {
 		return ob_get_clean();
 	}
 
+	private function get_sorted_units( $exclude_abteilung = false ) {
+		$units = get_terms( array(
+			'taxonomy' => 'activity_unit',
+			'hide_empty' => false,
+		) );
+
+		$order = array( 'abteilung', 'biber', 'woelfe', 'wolfe', 'pfadis', 'pios', 'rover' );
+		
+		usort( $units, function( $a, $b ) use ( $order ) {
+			$pos_a = array_search( $a->slug, $order );
+			$pos_b = array_search( $b->slug, $order );
+			
+			if ( $pos_a === false ) return 1;
+			if ( $pos_b === false ) return -1;
+			
+			return $pos_a - $pos_b;
+		} );
+
+		if ( $exclude_abteilung ) {
+			$units = array_filter( $units, function( $unit ) {
+				return 'abteilung' !== $unit->slug;
+			} );
+		}
+
+		return $units;
+	}
+
 	public function handle_subscription_actions() {
+		if ( wp_doing_ajax() ) {
+			return;
+		}
+
 		if ( isset( $_POST['pfadi_action'] ) && 'subscribe' === $_POST['pfadi_action'] ) {
 			$email = sanitize_email( $_POST['pfadi_email'] );
 			$units = isset( $_POST['pfadi_units'] ) ? array_map( 'intval', $_POST['pfadi_units'] ) : array();
@@ -308,22 +332,24 @@ class Pfadi_Frontend {
 		$message = str_replace( '{link}', $confirm_link, $message );
 
 		Pfadi_Logger::log( "Sending confirmation email to $email" );
-		$sent = wp_mail( $email, $subject, $message );
+		
+		$headers = array( 'Content-Type: text/html; charset=UTF-8' );
+		$admin_email = get_option( 'admin_email' );
+		$headers[] = 'From: Pfadi Manager <' . $admin_email . '>';
+
+		$sent = wp_mail( $email, $subject, $message, $headers );
 
 		if ( $sent ) {
 			Pfadi_Logger::log( "Confirmation email sent successfully to $email" );
 			wp_send_json_success( array( 'message' => 'Du hast eine Email zur Bestätigung deiner Emailadresse erhalten.' ) );
 		} else {
 			Pfadi_Logger::log( "Failed to send confirmation email to $email", 'error' );
-			wp_send_json_error( array( 'message' => 'Aktuell funktioniert es nicht, probiere es später nocheinmal oder informiere den Administrator: admin@alvier.ch.' ) );
+			wp_send_json_error( array( 'message' => 'Das hat leider nicht geklappt. Bitte versuche es später noch einmal oder wende dich an admin@alvier.ch.' ) );
 		}
 	}
 
 	public function handle_ajax_load_activities() {
-		// Nonce check optional for public read-only data, but good practice if we had one.
-		// Since we didn't localize a specific nonce for this action (reusing pfadi_subscribe_nonce might be confusing), 
-		// and it's public data, we'll skip strict nonce check or use the existing one if applicable.
-		// For now, let's keep it open as it's just reading public posts.
+		check_ajax_referer( 'pfadi_subscribe_nonce', 'nonce' );
 		
 		$unit_slug = isset( $_POST['unit'] ) ? sanitize_text_field( $_POST['unit'] ) : '';
 		$view = isset( $_POST['view'] ) ? sanitize_text_field( $_POST['view'] ) : 'cards';

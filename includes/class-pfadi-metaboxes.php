@@ -113,10 +113,7 @@ class Pfadi_Metaboxes {
 			<label for="pfadi_leaders">Leitung:</label>
 			<input type="text" id="pfadi_leaders" name="pfadi_leaders" value="<?php echo esc_attr( $leaders ); ?>" style="width:100%">
 		</p>
-		<p>
-			<label for="pfadi_leaders">Leitung:</label>
-			<input type="text" id="pfadi_leaders" name="pfadi_leaders" value="<?php echo esc_attr( $leaders ); ?>" style="width:100%">
-		</p>
+
 		<?php endif; ?>
 
 		<?php if ( 'scheduled' === get_option( 'pfadi_mail_mode', 'scheduled' ) ) : ?>

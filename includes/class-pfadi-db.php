@@ -14,7 +14,8 @@ class Pfadi_DB {
 			token varchar(100) NOT NULL,
 			status varchar(20) DEFAULT 'pending' NOT NULL,
 			created_at datetime DEFAULT CURRENT_TIMESTAMP NOT NULL,
-			PRIMARY KEY  (id)
+			PRIMARY KEY  (id),
+			UNIQUE KEY email (email)
 		) $charset_collate;";
 
 		require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );

@@ -28,8 +28,18 @@ class Pfadi_Admin_Pages {
 
 	public function render_subscribers_page() {
 		require_once PFADI_MANAGER_PATH . 'includes/class-pfadi-subscribers-list-table.php';
+		require_once PFADI_MANAGER_PATH . 'includes/class-pfadi-mailer.php';
 
 		$this->handle_manual_subscription();
+		$this->handle_edit_subscription();
+
+		$action = isset( $_GET['action'] ) ? $_GET['action'] : '';
+		$subscriber_id = isset( $_GET['subscriber'] ) ? intval( $_GET['subscriber'] ) : 0;
+
+		if ( 'edit' === $action && $subscriber_id > 0 ) {
+			$this->render_edit_form( $subscriber_id );
+			return;
+		}
 
 		$list_table = new Pfadi_Subscribers_List_Table();
 		$list_table->process_bulk_action();
@@ -54,7 +64,18 @@ class Pfadi_Admin_Pages {
 									'taxonomy' => 'activity_unit',
 									'hide_empty' => false,
 								) );
+								
+								$order = array( 'abteilung', 'biber', 'woelfe', 'wolfe', 'pfadis', 'pios', 'rover' );
+								usort( $units, function( $a, $b ) use ( $order ) {
+									$pos_a = array_search( $a->slug, $order );
+									$pos_b = array_search( $b->slug, $order );
+									if ( $pos_a === false ) return 1;
+									if ( $pos_b === false ) return -1;
+									return $pos_a - $pos_b;
+								} );
+
 								foreach ( $units as $unit ) {
+									if ( 'abteilung' === $unit->slug ) continue;
 									echo '<label style="margin-right: 10px;"><input type="checkbox" name="new_subscriber_units[]" value="' . esc_attr( $unit->term_id ) . '"> ' . esc_html( $unit->name ) . '</label>';
 								}
 								?>
@@ -73,6 +94,86 @@ class Pfadi_Admin_Pages {
 			</form>
 		</div>
 		<?php
+	}
+
+	private function render_edit_form( $subscriber_id ) {
+		global $wpdb;
+		$table_name = $wpdb->prefix . 'pfadi_subscribers';
+		$subscriber = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $table_name WHERE id = %d", $subscriber_id ) );
+
+		if ( ! $subscriber ) {
+			echo '<div class="notice notice-error"><p>Abonnent nicht gefunden.</p></div>';
+			return;
+		}
+
+		$subscribed_units = json_decode( $subscriber->subscribed_units, true );
+		if ( ! is_array( $subscribed_units ) ) {
+			$subscribed_units = array();
+		}
+		?>
+		<div class="wrap">
+			<h1 class="wp-heading-inline">Abonnent bearbeiten</h1>
+			<a href="?post_type=activity&page=pfadi_subscribers" class="page-title-action">Zurück zur Übersicht</a>
+			
+			<div class="card" style="max-width: 100%; margin-top: 20px;">
+				<form method="post">
+					<table class="form-table">
+						<tr>
+							<th scope="row">E-Mail</th>
+							<td><input type="email" value="<?php echo esc_attr( $subscriber->email ); ?>" class="regular-text" disabled></td>
+						</tr>
+						<tr>
+							<th scope="row">Stufen</th>
+							<td>
+								<?php
+								$units = get_terms( array(
+									'taxonomy' => 'activity_unit',
+									'hide_empty' => false,
+								) );
+
+								$order = array( 'abteilung', 'biber', 'woelfe', 'wolfe', 'pfadis', 'pios', 'rover' );
+								usort( $units, function( $a, $b ) use ( $order ) {
+									$pos_a = array_search( $a->slug, $order );
+									$pos_b = array_search( $b->slug, $order );
+									if ( $pos_a === false ) return 1;
+									if ( $pos_b === false ) return -1;
+									return $pos_a - $pos_b;
+								} );
+
+								foreach ( $units as $unit ) {
+									if ( 'abteilung' === $unit->slug ) continue;
+									$checked = in_array( $unit->term_id, $subscribed_units ) ? 'checked' : '';
+									echo '<label style="margin-right: 10px;"><input type="checkbox" name="edit_subscriber_units[]" value="' . esc_attr( $unit->term_id ) . '" ' . $checked . '> ' . esc_html( $unit->name ) . '</label>';
+								}
+								?>
+							</td>
+						</tr>
+					</table>
+					<input type="hidden" name="subscriber_id" value="<?php echo esc_attr( $subscriber->id ); ?>">
+					<?php wp_nonce_field( 'edit_subscriber', 'pfadi_edit_subscriber_nonce' ); ?>
+					<p class="submit"><input type="submit" name="edit_subscriber" id="submit" class="button button-primary" value="Speichern"></p>
+				</form>
+			</div>
+		</div>
+		<?php
+	}
+
+	private function handle_edit_subscription() {
+		if ( isset( $_POST['edit_subscriber'] ) && check_admin_referer( 'edit_subscriber', 'pfadi_edit_subscriber_nonce' ) ) {
+			global $wpdb;
+			$table_name = $wpdb->prefix . 'pfadi_subscribers';
+			
+			$subscriber_id = intval( $_POST['subscriber_id'] );
+			$units = isset( $_POST['edit_subscriber_units'] ) ? array_map( 'intval', $_POST['edit_subscriber_units'] ) : array();
+
+			$wpdb->update(
+				$table_name,
+				array( 'subscribed_units' => json_encode( $units ) ),
+				array( 'id' => $subscriber_id )
+			);
+
+			echo '<div class="notice notice-success is-dismissible"><p>Abonnent aktualisiert.</p></div>';
+		}
 	}
 
 	private function handle_manual_subscription() {
@@ -97,16 +198,33 @@ class Pfadi_Admin_Pages {
 					);
 					echo '<div class="notice notice-success is-dismissible"><p>Abonnent aktualisiert.</p></div>';
 				} else {
+					$token = wp_generate_password( 32, false );
 					$wpdb->insert(
 						$table_name,
 						array(
 							'email' => $email,
 							'subscribed_units' => json_encode( $units ),
-							'token' => wp_generate_password( 32, false ),
-							'status' => 'active',
+							'token' => $token,
+							'status' => 'pending',
 						)
 					);
-					echo '<div class="notice notice-success is-dismissible"><p>Abonnent hinzugefügt.</p></div>';
+
+					// Send confirmation email
+					$confirm_link = add_query_arg( array(
+						'pfadi_action' => 'confirm',
+						'token' => $token,
+						'email' => urlencode( $email ),
+					), home_url() );
+
+					$subject = get_option( 'pfadi_confirm_subject', 'Pfadi Abo Bestätigen' );
+					$message = get_option( 'pfadi_confirm_message', 'Bitte bestätigen Sie Ihr Abo: {link}' );
+					$message = str_replace( '{link}', $confirm_link, $message );
+
+					if ( wp_mail( $email, $subject, $message ) ) {
+						echo '<div class="notice notice-success is-dismissible"><p>Abonnent hinzugefügt. Bestätigungs-E-Mail wurde versendet.</p></div>';
+					} else {
+						echo '<div class="notice notice-error is-dismissible"><p>Abonnent hinzugefügt, aber die Bestätigungs-E-Mail konnte nicht gesendet werden. Bitte prüfen Sie Ihre E-Mail-Einstellungen.</p></div>';
+					}
 				}
 			} else {
 				echo '<div class="notice notice-error is-dismissible"><p>Ungültige E-Mail Adresse.</p></div>';

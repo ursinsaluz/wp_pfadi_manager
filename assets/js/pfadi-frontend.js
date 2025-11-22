@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    messageContainer.innerHTML = 'Aktuell funktioniert es nicht, probiere es später nocheinmal oder informiere den Administrator: admin@alvier.ch.';
+                    messageContainer.innerHTML = 'Das hat leider nicht geklappt. Bitte versuche es später noch einmal oder wende dich an admin@alvier.ch.';
                     messageContainer.className = 'pfadi-message error';
                 })
                 .finally(() => {
@@ -78,6 +78,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 formData.append('action', 'pfadi_load_activities');
                 formData.append('unit', unit);
                 formData.append('view', view);
+                formData.append('nonce', pfadi_ajax.nonce);
 
                 fetch(pfadi_ajax.ajax_url, {
                     method: 'POST',

@@ -71,6 +71,7 @@ class Pfadi_Subscribers_List_Table extends WP_List_Table {
 
 	protected function column_email( $item ) {
 		$actions = array(
+			'edit'   => sprintf( '<a href="?post_type=activity&page=%s&action=%s&subscriber=%s">Bearbeiten</a>', $_REQUEST['page'], 'edit', $item->id ),
 			'delete' => sprintf( '<a href="?post_type=activity&page=%s&action=%s&subscriber=%s&_wpnonce=%s">Löschen</a>', $_REQUEST['page'], 'delete', $item->id, wp_create_nonce( 'delete_subscriber_' . $item->id ) ),
 		);
 
