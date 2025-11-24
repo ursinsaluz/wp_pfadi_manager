@@ -1,17 +1,19 @@
 <?php
 
 if ( ! class_exists( 'WP_List_Table' ) ) {
-	require_once( ABSPATH . 'wp-admin/includes/class-wp-list-table.php' );
+	require_once ABSPATH . 'wp-admin/includes/class-wp-list-table.php';
 }
 
 class Pfadi_Subscribers_List_Table extends WP_List_Table {
 
 	public function __construct() {
-		parent::__construct( array(
-			'singular' => 'subscriber',
-			'plural'   => 'subscribers',
-			'ajax'     => false,
-		) );
+		parent::__construct(
+			array(
+				'singular' => 'subscriber',
+				'plural'   => 'subscribers',
+				'ajax'     => false,
+			)
+		);
 	}
 
 	public function get_columns() {
@@ -89,25 +91,27 @@ class Pfadi_Subscribers_List_Table extends WP_List_Table {
 		global $wpdb;
 		$table_name = $wpdb->prefix . 'pfadi_subscribers';
 
-		$per_page = 20;
+		$per_page     = 20;
 		$current_page = $this->get_pagenum();
-		$total_items = $wpdb->get_var( "SELECT COUNT(id) FROM $table_name" );
+		$total_items  = $wpdb->get_var( "SELECT COUNT(id) FROM $table_name" );
 
-		$this->set_pagination_args( array(
-			'total_items' => $total_items,
-			'per_page'    => $per_page,
-		) );
+		$this->set_pagination_args(
+			array(
+				'total_items' => $total_items,
+				'per_page'    => $per_page,
+			)
+		);
 
-		$columns = $this->get_columns();
-		$hidden = array();
+		$columns  = $this->get_columns();
+		$hidden   = array();
 		$sortable = $this->get_sortable_columns();
 
 		$this->_column_headers = array( $columns, $hidden, $sortable );
 
 		$orderby = ( ! empty( $_REQUEST['orderby'] ) ) ? sanitize_sql_orderby( $_REQUEST['orderby'] ) : 'created_at';
-		$order = ( ! empty( $_REQUEST['order'] ) ) ? sanitize_text_field( $_REQUEST['order'] ) : 'DESC';
+		$order   = ( ! empty( $_REQUEST['order'] ) ) ? sanitize_text_field( $_REQUEST['order'] ) : 'DESC';
 
-		$sql = "SELECT * FROM $table_name ORDER BY $orderby $order LIMIT %d OFFSET %d";
+		$sql         = "SELECT * FROM $table_name ORDER BY $orderby $order LIMIT %d OFFSET %d";
 		$this->items = $wpdb->get_results( $wpdb->prepare( $sql, $per_page, ( $current_page - 1 ) * $per_page ) );
 	}
 
@@ -129,7 +133,7 @@ class Pfadi_Subscribers_List_Table extends WP_List_Table {
 
 		if ( 'bulk-delete' === $this->current_action() ) {
 			check_admin_referer( 'bulk-subscribers' );
-			
+
 			if ( isset( $_POST['subscriber'] ) && is_array( $_POST['subscriber'] ) ) {
 				foreach ( $_POST['subscriber'] as $subscriber_id ) {
 					$wpdb->delete( $table_name, array( 'id' => absint( $subscriber_id ) ) );

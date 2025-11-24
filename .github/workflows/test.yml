@@ -22,7 +22,17 @@ jobs:
         coverage: none
 
     - name: Install dependencies
-      run: composer install --prefer-dist --no-progress
+      run: |
+        composer install --prefer-dist --no-progress
+        npm install
+
+    - name: Lint PHP
+      run: npm run lint:php
+
+    - name: Lint JS/CSS
+      run: |
+        npm run lint:js
+        npm run lint:css
 
     - name: Install WordPress Test Suite
       run: |

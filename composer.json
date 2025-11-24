@@ -1,0 +1,32 @@
+{
+    "name": "schlingel/pfadi-manager",
+    "description": "A plugin to post news and upcomming activities for your local scout group.",
+    "type": "wordpress-plugin",
+    "license": "GPL-2.0-or-later",
+    "autoload": {
+        "psr-4": {
+            "Schlingel\\PfadiManager\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Ursin",
+            "email": "ursin.saluz@gmail.com"
+        }
+    ],
+    "require-dev": {
+        "wp-coding-standards/wpcs": "^3.2",
+        "dealerdirect/phpcodesniffer-composer-installer": "^1.2",
+        "phpunit/phpunit": "^9.6",
+        "yoast/phpunit-polyfills": "^4.0"
+    },
+    "config": {
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true
+        }
+    },
+    "scripts": {
+        "format": "./vendor/bin/phpcbf --report-summary --report-source || true",
+        "lint": "./vendor/bin/phpcs"
+    }
+}

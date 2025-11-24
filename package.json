@@ -1,0 +1,41 @@
+{
+  "name": "wp-pfadi-manager",
+  "version": "1.2.1",
+  "description": "Digitalisiert und automatisiert den Informationsfluss einer Pfadi-Abteilung.",
+  "main": "index.js",
+  "scripts": {
+    "lint:js": "wp-scripts lint-js",
+    "lint:css": "stylelint '**/*.css' '**/*.scss'",
+    "lint:php": "composer run lint",
+    "format:js": "wp-scripts lint-js --fix",
+    "format:css": "stylelint '**/*.css' '**/*.scss' --fix",
+    "format:php": "composer run format",
+    "build": "wp-scripts build",
+    "test": "vendor/bin/phpunit"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ursinsaluz/wp_pfadi_manager.git"
+  },
+  "keywords": [
+    "wordpress",
+    "plugin",
+    "scouts"
+  ],
+  "author": "Ursin Saluz",
+  "license": "GPL-2.0-or-later",
+  "bugs": {
+    "url": "https://github.com/ursinsaluz/wp_pfadi_manager/issues"
+  },
+  "homepage": "https://github.com/ursinsaluz/wp_pfadi_manager#readme",
+  "devDependencies": {
+    "@wordpress/eslint-plugin": "^22.21.0",
+    "@wordpress/scripts": "^31.0.0",
+    "@wordpress/stylelint-config": "^23.27.0",
+    "stylelint": "^16.8.0",
+    "stylelint-scss": "^6.5.0"
+  },
+  "overrides": {
+    "webpack-dev-server": "^5.2.2"
+  }
+}

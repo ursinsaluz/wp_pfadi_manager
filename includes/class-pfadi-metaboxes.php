@@ -15,15 +15,15 @@ class Pfadi_Metaboxes {
 		if ( $hook == 'post-new.php' || $hook == 'post.php' ) {
 			if ( 'activity' === $post->post_type ) {
 				wp_enqueue_script( 'pfadi-admin-js', PFADI_MANAGER_URL . 'assets/js/admin.js', array( 'jquery' ), '1.0.0', true );
-				
+
 				// Pass settings to JS
-				$units = array( 'Biber', 'Wölfe', 'Pfadis', 'Pios', 'Rover', 'Abteilung' );
+				$units    = array( 'Biber', 'Wölfe', 'Pfadis', 'Pios', 'Rover', 'Abteilung' );
 				$settings = array();
 				foreach ( $units as $unit ) {
-					$slug = sanitize_title( $unit );
+					$slug              = sanitize_title( $unit );
 					$settings[ $slug ] = array(
-						'greeting' => get_option( "pfadi_greeting_$slug" ),
-						'leaders'  => get_option( "pfadi_leaders_$slug", 'Die Leiter' ),
+						'greeting'  => get_option( "pfadi_greeting_$slug" ),
+						'leaders'   => get_option( "pfadi_leaders_$slug", 'Die Leiter' ),
 						'starttime' => get_option( "pfadi_starttime_$slug" ),
 						'endtime'   => get_option( "pfadi_endtime_$slug" ),
 					);
@@ -55,7 +55,7 @@ class Pfadi_Metaboxes {
 		// Move 'activity_unit' taxonomy box to main column, above details
 		remove_meta_box( 'activity_unitdiv', 'activity', 'side' );
 		remove_meta_box( 'activity_unitdiv', 'announcement', 'side' );
-		
+
 		add_meta_box(
 			'activity_unitdiv',
 			__( 'Stufen', 'wp-pfadi-manager' ),
@@ -83,15 +83,15 @@ class Pfadi_Metaboxes {
 		}
 
 		$start_time = get_post_meta( $post->ID, '_pfadi_start_time', true );
-		$end_time = get_post_meta( $post->ID, '_pfadi_end_time', true );
+		$end_time   = get_post_meta( $post->ID, '_pfadi_end_time', true );
 
 		if ( empty( $start_time ) && empty( $end_time ) ) {
-			$now = current_time( 'timestamp' );
+			$now        = current_time( 'timestamp' );
 			$start_time = date( 'Y-m-d\TH:i', $now );
-			$end_time = date( 'Y-m-d\TH:i', strtotime( '+2 weeks', $now ) );
+			$end_time   = date( 'Y-m-d\TH:i', strtotime( '+2 weeks', $now ) );
 		} else {
 			$start_time = str_replace( ' ', 'T', $start_time );
-			$end_time = str_replace( ' ', 'T', $end_time );
+			$end_time   = str_replace( ' ', 'T', $end_time );
 		}
 		?>
 		<div class="postbox" style="margin-top: 20px; margin-bottom: 20px;">
@@ -112,34 +112,34 @@ class Pfadi_Metaboxes {
 	public function render_meta_box( $post ) {
 		wp_nonce_field( 'pfadi_save_meta_box_data', 'pfadi_meta_box_nonce' );
 
-		$start_time = get_post_meta( $post->ID, '_pfadi_start_time', true );
-		$end_time = get_post_meta( $post->ID, '_pfadi_end_time', true );
-		$location = get_post_meta( $post->ID, '_pfadi_location', true );
-		$bring = get_post_meta( $post->ID, '_pfadi_bring', true );
-		$special = get_post_meta( $post->ID, '_pfadi_special', true );
-		$greeting = get_post_meta( $post->ID, '_pfadi_greeting', true );
-		$leaders = get_post_meta( $post->ID, '_pfadi_leaders', true );
+		$start_time       = get_post_meta( $post->ID, '_pfadi_start_time', true );
+		$end_time         = get_post_meta( $post->ID, '_pfadi_end_time', true );
+		$location         = get_post_meta( $post->ID, '_pfadi_location', true );
+		$bring            = get_post_meta( $post->ID, '_pfadi_bring', true );
+		$special          = get_post_meta( $post->ID, '_pfadi_special', true );
+		$greeting         = get_post_meta( $post->ID, '_pfadi_greeting', true );
+		$leaders          = get_post_meta( $post->ID, '_pfadi_leaders', true );
 		$send_immediately = get_post_meta( $post->ID, '_pfadi_send_immediately', true );
 
 		// Default values for new posts (Only for Activity now, Announcement handled in render_validity_fields)
 		if ( 'activity' === $post->post_type && empty( $start_time ) && empty( $end_time ) ) {
 			$next_saturday = new DateTime( 'next saturday 14:00' );
-			$start_time = $next_saturday->format( 'Y-m-d\TH:i' );
-			
+			$start_time    = $next_saturday->format( 'Y-m-d\TH:i' );
+
 			$next_saturday_end = new DateTime( 'next saturday 17:00' );
-			$end_time = $next_saturday_end->format( 'Y-m-d\TH:i' );
+			$end_time          = $next_saturday_end->format( 'Y-m-d\TH:i' );
 
 			$location = 'Pfadiheim';
-			$bring = 'Gueti Luuna';
+			$bring    = 'Gueti Luuna';
 		} else {
 			$start_time = str_replace( ' ', 'T', $start_time );
-			$end_time = str_replace( ' ', 'T', $end_time );
+			$end_time   = str_replace( ' ', 'T', $end_time );
 		}
 
 		if ( 'activity' === $post->post_type ) :
 			$start_label = __( 'Startzeit:', 'wp-pfadi-manager' );
-			$end_label = __( 'Endzeit:', 'wp-pfadi-manager' );
-		?>
+			$end_label   = __( 'Endzeit:', 'wp-pfadi-manager' );
+			?>
 		<p>
 			<label for="pfadi_start_time"><?php echo esc_html( $start_label ); ?></label>
 			<input type="datetime-local" id="pfadi_start_time" name="pfadi_start_time" value="<?php echo esc_attr( $start_time ); ?>" style="width:100%">

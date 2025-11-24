@@ -23,15 +23,15 @@ class Pfadi_Feeds {
 			return $content;
 		}
 
-		$start = get_post_meta( $post->ID, '_pfadi_start_time', true );
-		$end = get_post_meta( $post->ID, '_pfadi_end_time', true );
+		$start    = get_post_meta( $post->ID, '_pfadi_start_time', true );
+		$end      = get_post_meta( $post->ID, '_pfadi_end_time', true );
 		$location = get_post_meta( $post->ID, '_pfadi_location', true );
-		$bring = get_post_meta( $post->ID, '_pfadi_bring', true );
+		$bring    = get_post_meta( $post->ID, '_pfadi_bring', true );
 
 		$start_date = date_i18n( 'd.m.Y H:i', strtotime( $start ) );
-		$end_date = date_i18n( 'H:i', strtotime( $end ) );
+		$end_date   = date_i18n( 'H:i', strtotime( $end ) );
 
-		$html = '<table border="1" cellpadding="5" cellspacing="0">';
+		$html  = '<table border="1" cellpadding="5" cellspacing="0">';
 		$html .= '<tr><td><strong>Wann:</strong></td><td>' . esc_html( $start_date . ' - ' . $end_date ) . '</td></tr>';
 		$html .= '<tr><td><strong>Wo:</strong></td><td>' . esc_html( $location ) . '</td></tr>';
 		$html .= '<tr><td><strong>Mitnehmen:</strong></td><td>' . nl2br( esc_html( $bring ) ) . '</td></tr>';
@@ -51,7 +51,7 @@ class Pfadi_Feeds {
 			echo "CALSCALE:GREGORIAN\r\n";
 
 			$stufen_param = isset( $_GET['stufen'] ) ? sanitize_text_field( $_GET['stufen'] ) : '';
-			$stufen = explode( ',', $stufen_param );
+			$stufen       = explode( ',', $stufen_param );
 
 			// Always include Abteilung
 			if ( ! in_array( 'abteilung', $stufen ) ) {
@@ -89,18 +89,18 @@ class Pfadi_Feeds {
 			while ( $query->have_posts() ) {
 				$query->the_post();
 				$id = get_the_ID();
-				
-				$start = get_post_meta( $id, '_pfadi_start_time', true );
-				$end = get_post_meta( $id, '_pfadi_end_time', true );
+
+				$start    = get_post_meta( $id, '_pfadi_start_time', true );
+				$end      = get_post_meta( $id, '_pfadi_end_time', true );
 				$location = get_post_meta( $id, '_pfadi_location', true );
-				$bring = get_post_meta( $id, '_pfadi_bring', true );
-				$special = get_post_meta( $id, '_pfadi_special', true );
-				$leaders = get_post_meta( $id, '_pfadi_leaders', true );
+				$bring    = get_post_meta( $id, '_pfadi_bring', true );
+				$special  = get_post_meta( $id, '_pfadi_special', true );
+				$leaders  = get_post_meta( $id, '_pfadi_leaders', true );
 
 				// Convert to UTC for iCal
 				$dtstart = get_gmt_from_date( date( 'Y-m-d H:i:s', strtotime( $start ) ), 'Ymd\THis\Z' );
-				$dtend = get_gmt_from_date( date( 'Y-m-d H:i:s', strtotime( $end ) ), 'Ymd\THis\Z' );
-				$now = gmdate( 'Ymd\THis\Z' );
+				$dtend   = get_gmt_from_date( date( 'Y-m-d H:i:s', strtotime( $end ) ), 'Ymd\THis\Z' );
+				$now     = gmdate( 'Ymd\THis\Z' );
 
 				$description = '';
 				if ( 'activity' === get_post_type( $id ) ) {
@@ -111,13 +111,13 @@ class Pfadi_Feeds {
 				$description = str_replace( "\n", "\\n", $description );
 
 				echo "BEGIN:VEVENT\r\n";
-				echo "UID:" . $id . "@" . $_SERVER['HTTP_HOST'] . "\r\n";
-				echo "DTSTAMP:" . $now . "\r\n";
-				echo "DTSTART:" . $dtstart . "\r\n";
-				echo "DTEND:" . $dtend . "\r\n";
-				echo "SUMMARY:" . get_the_title() . "\r\n";
-				echo "LOCATION:" . $location . "\r\n";
-				echo "DESCRIPTION:" . $description . "\r\n";
+				echo 'UID:' . $id . '@' . $_SERVER['HTTP_HOST'] . "\r\n";
+				echo 'DTSTAMP:' . $now . "\r\n";
+				echo 'DTSTART:' . $dtstart . "\r\n";
+				echo 'DTEND:' . $dtend . "\r\n";
+				echo 'SUMMARY:' . get_the_title() . "\r\n";
+				echo 'LOCATION:' . $location . "\r\n";
+				echo 'DESCRIPTION:' . $description . "\r\n";
 				echo "END:VEVENT\r\n";
 			}
 			wp_reset_postdata();

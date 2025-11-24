@@ -1,0 +1,25 @@
+name: Deploy to Server
+on:
+  push:
+    tags:
+      - 'v*'
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        run: |
+          composer install --no-dev
+          npm install
+          npm run build
+      - name: Deploy
+        uses: easingthemes/ssh-deploy@main
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_KEY }}
+          ARGS: "-rltgoDzvO --delete"
+          SOURCE: "/"
+          REMOTE_HOST: ${{ secrets.SSH_HOST }}
+          REMOTE_USER: ${{ secrets.SSH_USER }}
+          TARGET: "/path/to/wordpress/wp-content/plugins/wp-pfadi-manager/"
+          EXCLUDE: "/.git/, /.github/, /node_modules/, /tests/"

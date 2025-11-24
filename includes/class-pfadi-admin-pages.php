@@ -20,8 +20,6 @@ class Pfadi_Admin_Pages {
 			'pfadi_subscribers',
 			array( $this, 'render_subscribers_page' )
 		);
-
-
 	}
 
 
@@ -33,7 +31,7 @@ class Pfadi_Admin_Pages {
 		$this->handle_manual_subscription();
 		$this->handle_edit_subscription();
 
-		$action = isset( $_GET['action'] ) ? $_GET['action'] : '';
+		$action        = isset( $_GET['action'] ) ? $_GET['action'] : '';
 		$subscriber_id = isset( $_GET['subscriber'] ) ? intval( $_GET['subscriber'] ) : 0;
 
 		if ( 'edit' === $action && $subscriber_id > 0 ) {
@@ -60,22 +58,33 @@ class Pfadi_Admin_Pages {
 							<th scope="row"><?php _e( 'Stufen', 'wp-pfadi-manager' ); ?></th>
 							<td>
 								<?php
-								$units = get_terms( array(
-									'taxonomy' => 'activity_unit',
-									'hide_empty' => false,
-								) );
-								
+								$units = get_terms(
+									array(
+										'taxonomy'   => 'activity_unit',
+										'hide_empty' => false,
+									)
+								);
+
 								$order = array( 'abteilung', 'biber', 'woelfe', 'wolfe', 'pfadis', 'pios', 'rover' );
-								usort( $units, function( $a, $b ) use ( $order ) {
-									$pos_a = array_search( $a->slug, $order );
-									$pos_b = array_search( $b->slug, $order );
-									if ( $pos_a === false ) return 1;
-									if ( $pos_b === false ) return -1;
-									return $pos_a - $pos_b;
-								} );
+								usort(
+									$units,
+									function ( $a, $b ) use ( $order ) {
+										$pos_a = array_search( $a->slug, $order );
+										$pos_b = array_search( $b->slug, $order );
+										if ( $pos_a === false ) {
+											return 1;
+										}
+										if ( $pos_b === false ) {
+											return -1;
+										}
+										return $pos_a - $pos_b;
+									}
+								);
 
 								foreach ( $units as $unit ) {
-									if ( 'abteilung' === $unit->slug ) continue;
+									if ( 'abteilung' === $unit->slug ) {
+										continue;
+									}
 									echo '<label style="margin-right: 10px;"><input type="checkbox" name="new_subscriber_units[]" value="' . esc_attr( $unit->term_id ) . '"> ' . esc_html( $unit->name ) . '</label>';
 								}
 								?>
@@ -127,22 +136,33 @@ class Pfadi_Admin_Pages {
 							<th scope="row"><?php _e( 'Stufen', 'wp-pfadi-manager' ); ?></th>
 							<td>
 								<?php
-								$units = get_terms( array(
-									'taxonomy' => 'activity_unit',
-									'hide_empty' => false,
-								) );
+								$units = get_terms(
+									array(
+										'taxonomy'   => 'activity_unit',
+										'hide_empty' => false,
+									)
+								);
 
 								$order = array( 'abteilung', 'biber', 'woelfe', 'wolfe', 'pfadis', 'pios', 'rover' );
-								usort( $units, function( $a, $b ) use ( $order ) {
-									$pos_a = array_search( $a->slug, $order );
-									$pos_b = array_search( $b->slug, $order );
-									if ( $pos_a === false ) return 1;
-									if ( $pos_b === false ) return -1;
-									return $pos_a - $pos_b;
-								} );
+								usort(
+									$units,
+									function ( $a, $b ) use ( $order ) {
+										$pos_a = array_search( $a->slug, $order );
+										$pos_b = array_search( $b->slug, $order );
+										if ( $pos_a === false ) {
+											return 1;
+										}
+										if ( $pos_b === false ) {
+											return -1;
+										}
+										return $pos_a - $pos_b;
+									}
+								);
 
 								foreach ( $units as $unit ) {
-									if ( 'abteilung' === $unit->slug ) continue;
+									if ( 'abteilung' === $unit->slug ) {
+										continue;
+									}
 									$checked = in_array( $unit->term_id, $subscribed_units ) ? 'checked' : '';
 									echo '<label style="margin-right: 10px;"><input type="checkbox" name="edit_subscriber_units[]" value="' . esc_attr( $unit->term_id ) . '" ' . $checked . '> ' . esc_html( $unit->name ) . '</label>';
 								}
@@ -163,9 +183,9 @@ class Pfadi_Admin_Pages {
 		if ( isset( $_POST['edit_subscriber'] ) && check_admin_referer( 'edit_subscriber', 'pfadi_edit_subscriber_nonce' ) ) {
 			global $wpdb;
 			$table_name = $wpdb->prefix . 'pfadi_subscribers';
-			
+
 			$subscriber_id = intval( $_POST['subscriber_id'] );
-			$units = isset( $_POST['edit_subscriber_units'] ) ? array_map( 'intval', $_POST['edit_subscriber_units'] ) : array();
+			$units         = isset( $_POST['edit_subscriber_units'] ) ? array_map( 'intval', $_POST['edit_subscriber_units'] ) : array();
 
 			$wpdb->update(
 				$table_name,
@@ -185,7 +205,7 @@ class Pfadi_Admin_Pages {
 			if ( is_email( $email ) ) {
 				global $wpdb;
 				$table_name = $wpdb->prefix . 'pfadi_subscribers';
-				
+
 				$exists = $wpdb->get_var( $wpdb->prepare( "SELECT id FROM $table_name WHERE email = %s", $email ) );
 
 				if ( $exists ) {
@@ -193,7 +213,7 @@ class Pfadi_Admin_Pages {
 						$table_name,
 						array(
 							'subscribed_units' => json_encode( $units ),
-							'status' => 'active',
+							'status'           => 'active',
 						),
 						array( 'email' => $email )
 					);
@@ -203,19 +223,22 @@ class Pfadi_Admin_Pages {
 					$wpdb->insert(
 						$table_name,
 						array(
-							'email' => $email,
+							'email'            => $email,
 							'subscribed_units' => json_encode( $units ),
-							'token' => $token,
-							'status' => 'pending',
+							'token'            => $token,
+							'status'           => 'pending',
 						)
 					);
 
 					// Send confirmation email
-					$confirm_link = add_query_arg( array(
-						'pfadi_action' => 'confirm',
-						'token' => $token,
-						'email' => urlencode( $email ),
-					), home_url() );
+					$confirm_link = add_query_arg(
+						array(
+							'pfadi_action' => 'confirm',
+							'token'        => $token,
+							'email'        => urlencode( $email ),
+						),
+						home_url()
+					);
 
 					$subject = get_option( 'pfadi_confirm_subject' );
 					if ( empty( $subject ) ) {
@@ -226,16 +249,16 @@ class Pfadi_Admin_Pages {
 					if ( empty( $message ) ) {
 						$message = __( 'Bitte bestätigen Sie Ihr Abo: {link}', 'wp-pfadi-manager' );
 					}
-					
-					$site_title = get_bloginfo( 'name' );
+
+					$site_title   = get_bloginfo( 'name' );
 					$placeholders = array(
 						'{link}'       => $confirm_link,
 						'{site_title}' => $site_title,
 					);
-					
+
 					$subject = str_replace( array_keys( $placeholders ), array_values( $placeholders ), $subject );
 					$message = str_replace( array_keys( $placeholders ), array_values( $placeholders ), $message );
-					
+
 					$headers = array( 'Content-Type: text/html; charset=UTF-8' );
 
 					Pfadi_Logger::log( "Sending backend confirmation email to $email" );

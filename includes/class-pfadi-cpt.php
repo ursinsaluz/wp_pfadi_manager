@@ -3,18 +3,21 @@
 class Pfadi_CPT {
 
 	public function register_cpt() {
-		$slug = get_option( 'pfadi_cpt_slug', 'activity' );
+		$slug              = get_option( 'pfadi_cpt_slug', 'activity' );
 		$announcement_slug = get_option( 'pfadi_announcement_slug', 'mitteilung' );
 
 		// Register Custom Post Status 'Archived'
-		register_post_status( 'archived', array(
-			'label'                     => _x( 'Archiviert', 'post status label', 'wp-pfadi-manager' ),
-			'public'                    => false,
-			'exclude_from_search'       => true,
-			'show_in_admin_all_list'    => false,
-			'show_in_admin_status_list' => true,
-			'label_count'               => _n_noop( 'Archiviert <span class="count">(%s)</span>', 'Archiviert <span class="count">(%s)</span>', 'wp-pfadi-manager' ),
-		) );
+		register_post_status(
+			'archived',
+			array(
+				'label'                     => _x( 'Archiviert', 'post status label', 'wp-pfadi-manager' ),
+				'public'                    => false,
+				'exclude_from_search'       => true,
+				'show_in_admin_all_list'    => false,
+				'show_in_admin_status_list' => true,
+				'label_count'               => _n_noop( 'Archiviert <span class="count">(%s)</span>', 'Archiviert <span class="count">(%s)</span>', 'wp-pfadi-manager' ),
+			)
+		);
 
 		$labels = array(
 			'name'                  => _x( 'Aktivitäten', 'Post Type General Name', 'wp-pfadi-manager' ),
@@ -45,67 +48,67 @@ class Pfadi_CPT {
 			'items_list_navigation' => __( 'Aktivitäten Liste Navigation', 'wp-pfadi-manager' ),
 			'filter_items_list'     => __( 'Aktivitäten Liste filtern', 'wp-pfadi-manager' ),
 		);
-		$args = array(
-			'label'                 => __( 'Aktivität', 'wp-pfadi-manager' ),
-			'description'           => __( 'Pfadi Aktivitäten', 'wp-pfadi-manager' ),
-			'labels'                => $labels,
-			'supports'              => array( 'title', 'author' ),
-			'taxonomies'            => array( 'activity_unit' ),
-			'hierarchical'          => false,
-			'public'                => true,
-			'show_ui'               => true,
-			'show_in_menu'          => true,
-			'menu_position'         => 5,
-			'menu_icon'             => 'dashicons-calendar-alt',
-			'show_in_admin_bar'     => true,
-			'show_in_nav_menus'     => true,
-			'can_export'            => true,
-			'has_archive'           => true,
-			'exclude_from_search'   => false,
-			'publicly_queryable'    => true,
-			'capability_type'       => 'post',
-			'show_in_rest'          => false, // Disable Block Editor
-			'rewrite'               => array( 'slug' => $slug ),
+		$args   = array(
+			'label'               => __( 'Aktivität', 'wp-pfadi-manager' ),
+			'description'         => __( 'Pfadi Aktivitäten', 'wp-pfadi-manager' ),
+			'labels'              => $labels,
+			'supports'            => array( 'title', 'author' ),
+			'taxonomies'          => array( 'activity_unit' ),
+			'hierarchical'        => false,
+			'public'              => true,
+			'show_ui'             => true,
+			'show_in_menu'        => true,
+			'menu_position'       => 5,
+			'menu_icon'           => 'dashicons-calendar-alt',
+			'show_in_admin_bar'   => true,
+			'show_in_nav_menus'   => true,
+			'can_export'          => true,
+			'has_archive'         => true,
+			'exclude_from_search' => false,
+			'publicly_queryable'  => true,
+			'capability_type'     => 'post',
+			'show_in_rest'        => false, // Disable Block Editor
+			'rewrite'             => array( 'slug' => $slug ),
 		);
 		register_post_type( 'activity', $args );
 
 		// Register Announcement CPT
 		// Register Announcement CPT
 		$labels_announcement = array(
-			'name'                  => _x( 'Mitteilungen', 'Post Type General Name', 'wp-pfadi-manager' ),
-			'singular_name'         => _x( 'Mitteilung', 'Post Type Singular Name', 'wp-pfadi-manager' ),
-			'menu_name'             => __( 'Mitteilungen', 'wp-pfadi-manager' ),
-			'name_admin_bar'        => __( 'Mitteilung', 'wp-pfadi-manager' ),
-			'add_new'               => __( 'Erstellen', 'wp-pfadi-manager' ),
-			'add_new_item'          => __( 'Neue Mitteilung erstellen', 'wp-pfadi-manager' ),
-			'new_item'              => __( 'Neue Mitteilung', 'wp-pfadi-manager' ),
-			'edit_item'             => __( 'Mitteilung bearbeiten', 'wp-pfadi-manager' ),
-			'view_item'             => __( 'Mitteilung ansehen', 'wp-pfadi-manager' ),
-			'all_items'             => __( 'Alle Mitteilungen', 'wp-pfadi-manager' ),
-			'search_items'          => __( 'Mitteilungen suchen', 'wp-pfadi-manager' ),
-			'not_found'             => __( 'Keine Mitteilungen gefunden.', 'wp-pfadi-manager' ),
-			'not_found_in_trash'    => __( 'Keine Mitteilungen im Papierkorb gefunden.', 'wp-pfadi-manager' ),
+			'name'               => _x( 'Mitteilungen', 'Post Type General Name', 'wp-pfadi-manager' ),
+			'singular_name'      => _x( 'Mitteilung', 'Post Type Singular Name', 'wp-pfadi-manager' ),
+			'menu_name'          => __( 'Mitteilungen', 'wp-pfadi-manager' ),
+			'name_admin_bar'     => __( 'Mitteilung', 'wp-pfadi-manager' ),
+			'add_new'            => __( 'Erstellen', 'wp-pfadi-manager' ),
+			'add_new_item'       => __( 'Neue Mitteilung erstellen', 'wp-pfadi-manager' ),
+			'new_item'           => __( 'Neue Mitteilung', 'wp-pfadi-manager' ),
+			'edit_item'          => __( 'Mitteilung bearbeiten', 'wp-pfadi-manager' ),
+			'view_item'          => __( 'Mitteilung ansehen', 'wp-pfadi-manager' ),
+			'all_items'          => __( 'Alle Mitteilungen', 'wp-pfadi-manager' ),
+			'search_items'       => __( 'Mitteilungen suchen', 'wp-pfadi-manager' ),
+			'not_found'          => __( 'Keine Mitteilungen gefunden.', 'wp-pfadi-manager' ),
+			'not_found_in_trash' => __( 'Keine Mitteilungen im Papierkorb gefunden.', 'wp-pfadi-manager' ),
 		);
 
 		$args_announcement = array(
-			'labels'                => $labels_announcement,
-			'public'                => true,
-			'publicly_queryable'    => true,
-			'show_ui'               => true,
-			'show_in_menu'          => true,
-			'query_var'             => true,
-			'rewrite'               => array( 'slug' => $announcement_slug ),
-			'capability_type'       => 'post',
-			'has_archive'           => true,
-			'hierarchical'          => false,
-			'menu_position'         => 6,
-			'menu_icon'             => 'dashicons-megaphone',
-			'supports'              => array( 'title', 'editor' ),
-			'show_in_rest'          => false,
+			'labels'             => $labels_announcement,
+			'public'             => true,
+			'publicly_queryable' => true,
+			'show_ui'            => true,
+			'show_in_menu'       => true,
+			'query_var'          => true,
+			'rewrite'            => array( 'slug' => $announcement_slug ),
+			'capability_type'    => 'post',
+			'has_archive'        => true,
+			'hierarchical'       => false,
+			'menu_position'      => 6,
+			'menu_icon'          => 'dashicons-megaphone',
+			'supports'           => array( 'title', 'editor' ),
+			'show_in_rest'       => false,
 		);
 
 		register_post_type( 'announcement', $args_announcement );
-		
+
 		// Register Taxonomy for Units (shared)
 		register_taxonomy_for_object_type( 'activity_unit', 'announcement' );
 
@@ -145,15 +148,15 @@ class Pfadi_CPT {
 		}
 
 		$processed = 0;
-		$mailer = new Pfadi_Mailer();
+		$mailer    = new Pfadi_Mailer();
 
 		foreach ( $post_ids as $post_id ) {
 			// Verify post type just in case
 			$post = get_post( $post_id );
 			if ( 'activity' === $post->post_type || 'announcement' === $post->post_type ) {
 				// We call send_newsletter_by_id which triggers the mailer
-				// Note: Pfadi_Mailer needs to be instantiated or method static. 
-				// send_newsletter_by_id is public but not static. 
+				// Note: Pfadi_Mailer needs to be instantiated or method static.
+				// send_newsletter_by_id is public but not static.
 				// However, it's hooked to an action 'pfadi_send_post_email'.
 				// We can either call it directly on an instance or trigger the action.
 				// Triggering the action via wp_schedule_single_event( time(), ... ) is safer for performance if many are selected,
@@ -161,9 +164,9 @@ class Pfadi_CPT {
 				// Let's call it directly via instance for "Action" feel, or schedule it.
 				// Given "Resend", immediate is probably expected or at least "queued".
 				// Let's use the instance we created.
-				
+
 				$mailer->send_newsletter_by_id( $post_id );
-				$processed++;
+				++$processed;
 			}
 		}
 
@@ -204,25 +207,37 @@ class Pfadi_CPT {
 			'items_list'                 => __( 'Stufen Liste', 'wp-pfadi-manager' ),
 			'items_list_navigation'      => __( 'Stufen Liste Navigation', 'wp-pfadi-manager' ),
 		);
-		$args = array(
-			'labels'                     => $labels,
-			'hierarchical'               => true,
-			'public'                     => true,
-			'show_ui'                    => true,
-			'show_admin_column'          => true,
-			'show_in_nav_menus'          => true,
-			'show_tagcloud'              => true,
-			'show_in_rest'               => false,
+		$args   = array(
+			'labels'            => $labels,
+			'hierarchical'      => true,
+			'public'            => true,
+			'show_ui'           => true,
+			'show_admin_column' => true,
+			'show_in_nav_menus' => true,
+			'show_tagcloud'     => true,
+			'show_in_rest'      => false,
 		);
 		register_taxonomy( 'activity_unit', array( 'activity' ), $args );
-		
+
 		// Register default terms if they don't exist
-		if ( ! term_exists( 'Biber', 'activity_unit' ) ) wp_insert_term( 'Biber', 'activity_unit' );
-		if ( ! term_exists( 'Wölfe', 'activity_unit' ) ) wp_insert_term( 'Wölfe', 'activity_unit' );
-		if ( ! term_exists( 'Pfadis', 'activity_unit' ) ) wp_insert_term( 'Pfadis', 'activity_unit' );
-		if ( ! term_exists( 'Pios', 'activity_unit' ) ) wp_insert_term( 'Pios', 'activity_unit' );
-		if ( ! term_exists( 'Rover', 'activity_unit' ) ) wp_insert_term( 'Rover', 'activity_unit' );
-		if ( ! term_exists( 'Abteilung', 'activity_unit' ) ) wp_insert_term( 'Abteilung', 'activity_unit' );
+		if ( ! term_exists( 'Biber', 'activity_unit' ) ) {
+			wp_insert_term( 'Biber', 'activity_unit' );
+		}
+		if ( ! term_exists( 'Wölfe', 'activity_unit' ) ) {
+			wp_insert_term( 'Wölfe', 'activity_unit' );
+		}
+		if ( ! term_exists( 'Pfadis', 'activity_unit' ) ) {
+			wp_insert_term( 'Pfadis', 'activity_unit' );
+		}
+		if ( ! term_exists( 'Pios', 'activity_unit' ) ) {
+			wp_insert_term( 'Pios', 'activity_unit' );
+		}
+		if ( ! term_exists( 'Rover', 'activity_unit' ) ) {
+			wp_insert_term( 'Rover', 'activity_unit' );
+		}
+		if ( ! term_exists( 'Abteilung', 'activity_unit' ) ) {
+			wp_insert_term( 'Abteilung', 'activity_unit' );
+		}
 	}
 
 	public function add_activity_columns( $columns ) {

@@ -13,7 +13,7 @@ class Pfadi_Mailer {
 		}
 
 		if ( 'publish' === $new_status && 'publish' !== $old_status ) {
-			$mode = get_option( 'pfadi_mail_mode', 'scheduled' );
+			$mode             = get_option( 'pfadi_mail_mode', 'scheduled' );
 			$send_immediately = get_post_meta( $post->ID, '_pfadi_send_immediately', true );
 
 			if ( 'immediate' === $mode || '1' === $send_immediately ) {
@@ -21,9 +21,9 @@ class Pfadi_Mailer {
 				wp_schedule_single_event( time(), 'pfadi_send_post_email', array( $post->ID ) );
 			} else {
 				// Scheduled mode
-				$time_str = get_option( 'pfadi_mail_time', '20:00' );
+				$time_str      = get_option( 'pfadi_mail_time', '20:00' );
 				$schedule_time = strtotime( $time_str );
-				
+
 				if ( time() > $schedule_time ) {
 					// Schedule for "now"
 					wp_schedule_single_event( time(), 'pfadi_send_post_email', array( $post->ID ) );
@@ -47,7 +47,7 @@ class Pfadi_Mailer {
 	private function send_newsletter( $post ) {
 		Pfadi_Logger::log( "Starting newsletter process for post: {$post->post_title} (ID: {$post->ID})" );
 		$units = wp_get_post_terms( $post->ID, 'activity_unit', array( 'fields' => 'ids' ) );
-		
+
 		if ( empty( $units ) && ! is_wp_error( $units ) ) {
 			Pfadi_Logger::log( "No units assigned to post ID: {$post->ID}. Aborting." );
 			return;
@@ -55,14 +55,14 @@ class Pfadi_Mailer {
 
 		// Check if 'Abteilung' is one of the units
 		$abteilung_term = get_term_by( 'slug', 'abteilung', 'activity_unit' );
-		$is_abteilung = false;
+		$is_abteilung   = false;
 		if ( $abteilung_term && in_array( $abteilung_term->term_id, $units ) ) {
 			$is_abteilung = true;
 		}
 
 		global $wpdb;
 		$table_name = $wpdb->prefix . 'pfadi_subscribers';
-		
+
 		// Get all active subscribers
 		$subscribers = $wpdb->get_results( "SELECT email, subscribed_units FROM $table_name WHERE status = 'active'" );
 
@@ -93,7 +93,7 @@ class Pfadi_Mailer {
 			return;
 		}
 
-		Pfadi_Logger::log( "Found " . count( $recipients ) . " recipients for post ID: {$post->ID}." );
+		Pfadi_Logger::log( 'Found ' . count( $recipients ) . " recipients for post ID: {$post->ID}." );
 
 		// Get Site Name
 		$site_name = get_bloginfo( 'name' );
@@ -115,7 +115,7 @@ class Pfadi_Mailer {
 
 		// Construct Subject
 		$subject_template = get_option( 'pfadi_mail_subject', '[{site_title}] Neue Pfadi-Aktivität: {title}' );
-		
+
 		// Support both English and German placeholders, and case-insensitive variants
 		$placeholders = array(
 			'{site_title}' => $site_name,
@@ -160,22 +160,22 @@ class Pfadi_Mailer {
 
 	private function get_email_template( $post ) {
 		$start = get_post_meta( $post->ID, '_pfadi_start_time', true );
-		$end = get_post_meta( $post->ID, '_pfadi_end_time', true );
-		
+		$end   = get_post_meta( $post->ID, '_pfadi_end_time', true );
+
 		$start_ts = strtotime( $start );
-		$end_ts = strtotime( $end );
+		$end_ts   = strtotime( $end );
 
 		// Date Formatting Logic
 		// Format: Samstag, 21.11.2025 von 14:00 bis 17:00 (if same day)
 		// Format: Samstag, 21.11.2025 14:00 bis Sonntag, 22.11.2025 14:00 (if different day)
 
 		$start_day = date( 'Ymd', $start_ts );
-		$end_day = date( 'Ymd', $end_ts );
+		$end_day   = date( 'Ymd', $end_ts );
 
 		if ( $start_day === $end_day ) {
 			// Same day
 			$date_str = sprintf(
-				__( '%s von %s bis %s', 'wp-pfadi-manager' ),
+				__( '%1$s von %2$s bis %3$s', 'wp-pfadi-manager' ),
 				date_i18n( 'l, d.m.Y', $start_ts ),
 				date_i18n( 'H:i', $start_ts ),
 				date_i18n( 'H:i', $end_ts )
@@ -183,7 +183,7 @@ class Pfadi_Mailer {
 		} else {
 			// Different days
 			$date_str = sprintf(
-				__( '%s bis %s', 'wp-pfadi-manager' ),
+				__( '%1$s bis %2$s', 'wp-pfadi-manager' ),
 				date_i18n( 'l, d.m.Y H:i', $start_ts ),
 				date_i18n( 'l, d.m.Y H:i', $end_ts )
 			);
@@ -198,7 +198,7 @@ class Pfadi_Mailer {
 		);
 
 		// Unit placeholders
-		$units = wp_get_post_terms( $post->ID, 'activity_unit' );
+		$units      = wp_get_post_terms( $post->ID, 'activity_unit' );
 		$unit_names = array();
 		if ( $units && ! is_wp_error( $units ) ) {
 			foreach ( $units as $unit ) {
@@ -210,10 +210,10 @@ class Pfadi_Mailer {
 		// Activity specific placeholders
 		if ( 'activity' === $post->post_type ) {
 			$location = get_post_meta( $post->ID, '_pfadi_location', true );
-			$bring = get_post_meta( $post->ID, '_pfadi_bring', true );
-			$special = get_post_meta( $post->ID, '_pfadi_special', true );
+			$bring    = get_post_meta( $post->ID, '_pfadi_bring', true );
+			$special  = get_post_meta( $post->ID, '_pfadi_special', true );
 			$greeting = get_post_meta( $post->ID, '_pfadi_greeting', true );
-			$leaders = get_post_meta( $post->ID, '_pfadi_leaders', true );
+			$leaders  = get_post_meta( $post->ID, '_pfadi_leaders', true );
 
 			$placeholders['{location}'] = esc_html( $location );
 			$placeholders['{bring}']    = nl2br( esc_html( $bring ) );

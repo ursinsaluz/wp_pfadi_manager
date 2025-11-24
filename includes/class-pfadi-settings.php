@@ -6,6 +6,8 @@ class Pfadi_Settings {
 		add_action( 'admin_menu', array( $this, 'add_admin_menu' ) );
 		add_action( 'admin_init', array( $this, 'register_settings' ) );
 		add_action( 'update_option_pfadi_cpt_slug', array( $this, 'flush_rewrite_rules_flag' ), 10, 2 );
+		add_action( 'admin_post_pfadi_download_log', array( $this, 'handle_download_log' ) );
+		add_action( 'admin_post_pfadi_clear_log', array( $this, 'handle_clear_log' ) );
 	}
 
 	public function flush_rewrite_rules_flag( $old_value, $new_value ) {
@@ -28,7 +30,7 @@ class Pfadi_Settings {
 	public function register_settings() {
 		// General Settings
 		register_setting( 'pfadi_settings_group', 'pfadi_cpt_slug' );
-		
+
 		add_settings_section(
 			'pfadi_section_general',
 			'Allgemeine Einstellungen',
@@ -75,10 +77,10 @@ class Pfadi_Settings {
 			array( $this, 'text_field_html' ),
 			'pfadi_settings_email',
 			'pfadi_section_email',
-			array( 
-				'name' => 'pfadi_mail_subject', 
-				'default' => '[{site_title}] Neue Pfadi-Aktivität: {title}',
-				'description' => 'Verfügbare Platzhalter: {title} (Titel der Aktivität), {unit} (Stufe), {site_title} (Titel der Website), {date} (Datum dd.mm.yy).'
+			array(
+				'name'        => 'pfadi_mail_subject',
+				'default'     => '[{site_title}] Neue Pfadi-Aktivität: {title}',
+				'description' => 'Verfügbare Platzhalter: {title} (Titel der Aktivität), {unit} (Stufe), {site_title} (Titel der Website), {date} (Datum dd.mm.yy).',
 			)
 		);
 
@@ -88,10 +90,10 @@ class Pfadi_Settings {
 			array( $this, 'text_field_html' ),
 			'pfadi_settings_email',
 			'pfadi_section_email',
-			array( 
-				'name' => 'pfadi_confirm_subject', 
-				'default' => '[{site_title}] Pfadi Abo Bestätigen',
-				'description' => 'Verfügbare Platzhalter: {site_title} (Titel der Website).'
+			array(
+				'name'        => 'pfadi_confirm_subject',
+				'default'     => '[{site_title}] Pfadi Abo Bestätigen',
+				'description' => 'Verfügbare Platzhalter: {site_title} (Titel der Website).',
 			)
 		);
 
@@ -101,7 +103,10 @@ class Pfadi_Settings {
 			array( $this, 'textarea_field_html' ),
 			'pfadi_settings_email',
 			'pfadi_section_email',
-			array( 'name' => 'pfadi_confirm_message', 'default' => 'Bitte bestätigen Sie Ihr Abo: {link}' )
+			array(
+				'name'    => 'pfadi_confirm_message',
+				'default' => 'Bitte bestätigen Sie Ihr Abo: {link}',
+			)
 		);
 
 		$activity_template_default = '<!DOCTYPE html>
@@ -170,10 +175,10 @@ class Pfadi_Settings {
 			array( $this, 'textarea_field_html' ),
 			'pfadi_settings_email',
 			'pfadi_section_email',
-			array( 
-				'name' => 'pfadi_mail_template_activity', 
-				'default' => $activity_template_default,
-				'description' => 'HTML Template für Aktivitäten-Mails. Lassen Sie es leer, um das Standard-Template zu verwenden. Platzhalter: {content} (Inhalt), {title}, {unit}, {site_title}, {date_str}, {location}, {bring}, {special}, {greeting}, {leaders}.'
+			array(
+				'name'        => 'pfadi_mail_template_activity',
+				'default'     => $activity_template_default,
+				'description' => 'HTML Template für Aktivitäten-Mails. Lassen Sie es leer, um das Standard-Template zu verwenden. Platzhalter: {content} (Inhalt), {title}, {unit}, {site_title}, {date_str}, {location}, {bring}, {special}, {greeting}, {leaders}.',
 			)
 		);
 
@@ -183,10 +188,10 @@ class Pfadi_Settings {
 			array( $this, 'textarea_field_html' ),
 			'pfadi_settings_email',
 			'pfadi_section_email',
-			array( 
-				'name' => 'pfadi_mail_template_announcement', 
-				'default' => $announcement_template_default,
-				'description' => 'HTML Template für Mitteilungs-Mails. Lassen Sie es leer, um das Standard-Template zu verwenden. Platzhalter: {content} (Inhalt), {title}, {unit}, {site_title}, {date_str}.'
+			array(
+				'name'        => 'pfadi_mail_template_announcement',
+				'default'     => $announcement_template_default,
+				'description' => 'HTML Template für Mitteilungs-Mails. Lassen Sie es leer, um das Standard-Template zu verwenden. Platzhalter: {content} (Inhalt), {title}, {unit}, {site_title}, {date_str}.',
 			)
 		);
 
@@ -206,20 +211,20 @@ class Pfadi_Settings {
 			'pfadi_section_email'
 		);
 
-		$units = array( 'Biber', 'Wölfe', 'Pfadis', 'Pios', 'Rover', 'Abteilung' );
+		$units             = array( 'Biber', 'Wölfe', 'Pfadis', 'Pios', 'Rover', 'Abteilung' );
 		$greeting_defaults = array(
-			'biber' => 'Mit freud debi',
-			'wolfe' => 'Üsers Bescht',
-			'woelfe' => 'Üsers Bescht',
-			'pfadis' => 'Allzeit bereit',
-			'pios' => 'Zäma Wiiter',
-			'rover' => 'Bewusst handlä',
+			'biber'     => 'Mit freud debi',
+			'wolfe'     => 'Üsers Bescht',
+			'woelfe'    => 'Üsers Bescht',
+			'pfadis'    => 'Allzeit bereit',
+			'pios'      => 'Zäma Wiiter',
+			'rover'     => 'Bewusst handlä',
 			'abteilung' => 'Allzeit bereit',
 		);
 
 		foreach ( $units as $unit ) {
 			$unit_slug = sanitize_title( $unit );
-			
+
 			register_setting( 'pfadi_settings_group', "pfadi_greeting_$unit_slug" );
 			register_setting( 'pfadi_settings_group', "pfadi_leaders_$unit_slug" );
 
@@ -238,9 +243,9 @@ class Pfadi_Settings {
 				array( $this, 'text_field_html' ),
 				'pfadi_settings_units',
 				"pfadi_section_$unit_slug",
-				array( 
-					'name' => "pfadi_greeting_$unit_slug",
-					'default' => $default_greeting
+				array(
+					'name'    => "pfadi_greeting_$unit_slug",
+					'default' => $default_greeting,
 				)
 			);
 
@@ -250,9 +255,9 @@ class Pfadi_Settings {
 				array( $this, 'text_field_html' ),
 				'pfadi_settings_units',
 				"pfadi_section_$unit_slug",
-				array( 
-					'name' => "pfadi_leaders_$unit_slug",
-					'default' => 'Die Leiter'
+				array(
+					'name'    => "pfadi_leaders_$unit_slug",
+					'default' => 'Die Leiter',
 				)
 			);
 		}
@@ -260,7 +265,7 @@ class Pfadi_Settings {
 
 	public function greeting_field_html( $args ) {
 		$unit_slug = $args['unit_slug'];
-		$value = get_option( "pfadi_greeting_$unit_slug" );
+		$value     = get_option( "pfadi_greeting_$unit_slug" );
 		?>
 		<input type="text" name="pfadi_greeting_<?php echo esc_attr( $unit_slug ); ?>" value="<?php echo esc_attr( $value ); ?>" class="regular-text">
 		<?php
@@ -268,7 +273,7 @@ class Pfadi_Settings {
 
 	public function leaders_field_html( $args ) {
 		$unit_slug = $args['unit_slug'];
-		$value = get_option( "pfadi_leaders_$unit_slug" );
+		$value     = get_option( "pfadi_leaders_$unit_slug" );
 		?>
 		<input type="text" name="pfadi_leaders_<?php echo esc_attr( $unit_slug ); ?>" value="<?php echo esc_attr( $value ); ?>" class="regular-text">
 		<?php
@@ -311,10 +316,10 @@ class Pfadi_Settings {
 	}
 
 	public function text_field_html( $args ) {
-		$name = $args['name'];
-		$default = isset( $args['default'] ) ? $args['default'] : '';
+		$name        = $args['name'];
+		$default     = isset( $args['default'] ) ? $args['default'] : '';
 		$description = isset( $args['description'] ) ? $args['description'] : '';
-		
+
 		$value = get_option( $name );
 		if ( empty( $value ) ) {
 			$value = $default;
@@ -331,8 +336,8 @@ class Pfadi_Settings {
 	}
 
 	public function textarea_field_html( $args ) {
-		$name = $args['name'];
-		$default = isset( $args['default'] ) ? $args['default'] : '';
+		$name        = $args['name'];
+		$default     = isset( $args['default'] ) ? $args['default'] : '';
 		$description = isset( $args['description'] ) ? $args['description'] : '';
 
 		$value = get_option( $name );
@@ -362,6 +367,7 @@ class Pfadi_Settings {
 				<a href="?post_type=activity&page=pfadi_settings&tab=general" class="nav-tab <?php echo $active_tab == 'general' ? 'nav-tab-active' : ''; ?>"><?php _e( 'Allgemein', 'wp-pfadi-manager' ); ?></a>
 				<a href="?post_type=activity&page=pfadi_settings&tab=email" class="nav-tab <?php echo $active_tab == 'email' ? 'nav-tab-active' : ''; ?>"><?php _e( 'E-Mail', 'wp-pfadi-manager' ); ?></a>
 				<a href="?post_type=activity&page=pfadi_settings&tab=units" class="nav-tab <?php echo $active_tab == 'units' ? 'nav-tab-active' : ''; ?>"><?php _e( 'Stufen-Einstellungen', 'wp-pfadi-manager' ); ?></a>
+				<a href="?post_type=activity&page=pfadi_settings&tab=logs" class="nav-tab <?php echo $active_tab == 'logs' ? 'nav-tab-active' : ''; ?>"><?php _e( 'Logs', 'wp-pfadi-manager' ); ?></a>
 			</nav>
 
 			<div class="tab-content">
@@ -401,17 +407,46 @@ class Pfadi_Settings {
 					<div class="card" style="max-width: 800px; margin-top: 20px;">
 						<h2><?php _e( 'Technische Informationen', 'wp-pfadi-manager' ); ?></h2>
 						<p><strong><?php _e( 'Plugin Version:', 'wp-pfadi-manager' ); ?></strong> <?php echo PFADI_MANAGER_VERSION; ?></p>
-						<p><strong><?php _e( 'Datenbank-Tabelle:', 'wp-pfadi-manager' ); ?></strong> <?php global $wpdb; echo $wpdb->prefix . 'pfadi_subscribers'; ?></p>
+						<p><strong><?php _e( 'Datenbank-Tabelle:', 'wp-pfadi-manager' ); ?></strong> 
+						<?php
+						global $wpdb;
+						echo $wpdb->prefix . 'pfadi_subscribers';
+						?>
+						</p>
 						<p><strong><?php _e( 'Cronjobs:', 'wp-pfadi-manager' ); ?></strong></p>
 						<ul>
 							<li><?php _e( 'Täglicher Cleanup (alte Aktivitäten archivieren)', 'wp-pfadi-manager' ); ?></li>
 						</ul>
 					</div>
+					</div>
+				<?php elseif ( $active_tab == 'logs' ) : ?>
+					<div class="card" style="max-width: 800px; margin-top: 20px;">
+						<h2><?php _e( 'System Logs', 'wp-pfadi-manager' ); ?></h2>
+						<p><?php _e( 'Hier sehen Sie die letzten 100 Log-Einträge des Plugins.', 'wp-pfadi-manager' ); ?></p>
+						
+						<div class="log-viewer" style="background: #f0f0f1; padding: 10px; border: 1px solid #ccc; height: 400px; overflow-y: scroll; font-family: monospace; white-space: pre-wrap; margin-bottom: 20px;">
+							<?php
+							$logs = Pfadi_Logger::get_logs( 100 );
+							if ( empty( $logs ) ) {
+								echo '<em>' . __( 'Keine Logs vorhanden.', 'wp-pfadi-manager' ) . '</em>';
+							} else {
+								foreach ( $logs as $log ) {
+									echo esc_html( $log ) . "\n";
+								}
+							}
+							?>
+						</div>
+
+						<div class="log-actions">
+							<a href="<?php echo esc_url( admin_url( 'admin-post.php?action=pfadi_download_log' ) ); ?>" class="button button-secondary"><?php _e( 'Download Log', 'wp-pfadi-manager' ); ?></a>
+							<a href="<?php echo esc_url( admin_url( 'admin-post.php?action=pfadi_clear_log' ) ); ?>" class="button button-link-delete" onclick="return confirm('<?php _e( 'Sind Sie sicher?', 'wp-pfadi-manager' ); ?>');"><?php _e( 'Logs löschen', 'wp-pfadi-manager' ); ?></a>
+						</div>
+					</div>
 				<?php else : ?>
 					<form action="options.php" method="post">
 						<?php
 						settings_fields( 'pfadi_settings_group' );
-						
+
 						if ( $active_tab == 'general' ) {
 							do_settings_sections( 'pfadi_settings' ); // General settings are in 'pfadi_settings' page but 'pfadi_general_section' section? No, wait.
 							// In register_settings:
@@ -422,7 +457,7 @@ class Pfadi_Settings {
 							// WordPress do_settings_sections prints ALL sections for a page.
 							// We need to register sections to DIFFERENT pages if we want to split them, OR manually print sections.
 							// Actually, we can just use different page slugs for add_settings_section.
-							
+
 							// Let's assume we refactor register_settings to use tab-specific page slugs.
 							do_settings_sections( 'pfadi_settings_general' );
 						} elseif ( $active_tab == 'email' ) {
@@ -430,7 +465,7 @@ class Pfadi_Settings {
 						} elseif ( $active_tab == 'units' ) {
 							do_settings_sections( 'pfadi_settings_units' );
 						}
-						
+
 						submit_button( 'Einstellungen speichern' );
 						?>
 					</form>
@@ -449,5 +484,37 @@ class Pfadi_Settings {
 			.card code { background: #f0f0f1; padding: 3px 5px; }
 		</style>
 		<?php
+	}
+
+	public function handle_download_log() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( 'Unauthorized' );
+		}
+
+		$file = Pfadi_Logger::get_log_file_path();
+		if ( ! file_exists( $file ) ) {
+			wp_die( 'Log file not found' );
+		}
+
+		header( 'Content-Description: File Transfer' );
+		header( 'Content-Type: application/octet-stream' );
+		header( 'Content-Disposition: attachment; filename="pfadi_debug.log"' );
+		header( 'Expires: 0' );
+		header( 'Cache-Control: must-revalidate' );
+		header( 'Pragma: public' );
+		header( 'Content-Length: ' . filesize( $file ) );
+		readfile( $file );
+		exit;
+	}
+
+	public function handle_clear_log() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( 'Unauthorized' );
+		}
+
+		Pfadi_Logger::clear_logs();
+
+		wp_redirect( admin_url( 'edit.php?post_type=activity&page=pfadi_settings&tab=logs&msg=cleared' ) );
+		exit;
 	}
 }

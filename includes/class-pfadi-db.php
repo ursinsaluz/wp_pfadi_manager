@@ -4,7 +4,7 @@ class Pfadi_DB {
 
 	public function create_table() {
 		global $wpdb;
-		$table_name = $wpdb->prefix . 'pfadi_subscribers';
+		$table_name      = $wpdb->prefix . 'pfadi_subscribers';
 		$charset_collate = $wpdb->get_charset_collate();
 
 		$sql = "CREATE TABLE $table_name (
@@ -18,7 +18,7 @@ class Pfadi_DB {
 			UNIQUE KEY email (email)
 		) $charset_collate;";
 
-		require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
+		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 		dbDelta( $sql );
 	}
 }

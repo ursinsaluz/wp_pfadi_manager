@@ -1,16 +1,45 @@
 <?php
 
+/**
+ * @package PfadiManager
+ */
+
+/**
+ * Register all actions and filters for the plugin.
+ *
+ * @package PfadiManager
+ */
 class Pfadi_Loader {
 
+	/**
+	 * The array of actions registered with WordPress.
+	 *
+	 * @var      array    $actions    The actions registered with WordPress to fire when the plugin loads.
+	 */
 	protected $actions;
+
+	/**
+	 * The array of filters registered with WordPress.
+	 *
+	 * @var      array    $filters    The filters registered with WordPress to fire when the plugin loads.
+	 */
 	protected $filters;
 
+	/**
+	 * Initialize the collections used to maintain the actions and filters.
+	 */
 	public function __construct() {
+
+		$this->actions = array();
+		$this->filters = array();
 		$this->load_dependencies();
 		$this->define_admin_hooks();
 		$this->define_public_hooks();
 	}
 
+	/**
+	 * Load the required dependencies for this plugin.
+	 */
 	private function load_dependencies() {
 		require_once PFADI_MANAGER_PATH . 'includes/class-pfadi-cpt.php';
 		require_once PFADI_MANAGER_PATH . 'includes/class-pfadi-db.php';
