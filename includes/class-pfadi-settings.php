@@ -78,7 +78,7 @@ class Pfadi_Settings {
 			array( 
 				'name' => 'pfadi_mail_subject', 
 				'default' => '[{site_title}] Neue Pfadi-Aktivität: {title}',
-				'description' => 'Verfügbare Platzhalter: {title} (Titel der Aktivität), {unit} (Stufe), {site_title} (Titel der Website).'
+				'description' => 'Verfügbare Platzhalter: {title} (Titel der Aktivität), {unit} (Stufe), {site_title} (Titel der Website), {date} (Datum dd.mm.yy).'
 			)
 		);
 
@@ -301,7 +301,10 @@ class Pfadi_Settings {
 	}
 
 	public function mail_time_field_html() {
-		$time = get_option( 'pfadi_mail_time', '20:00' );
+		$time = get_option( 'pfadi_mail_time' );
+		if ( empty( $time ) ) {
+			$time = '21:00';
+		}
 		?>
 		<input type="time" name="pfadi_mail_time" value="<?php echo esc_attr( $time ); ?>">
 		<?php

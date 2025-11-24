@@ -128,6 +128,8 @@ class Pfadi_Mailer {
 			'{Title}'      => $post->post_title,
 			'{titel}'      => $post->post_title,
 			'{Titel}'      => $post->post_title,
+			'{date}'       => date( 'd.m.y', $start_ts ),
+			'{datum}'      => date( 'd.m.y', $start_ts ),
 		);
 
 		$subject = str_replace( array_keys( $placeholders ), array_values( $placeholders ), $subject_template );

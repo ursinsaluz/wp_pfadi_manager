@@ -217,8 +217,15 @@ class Pfadi_Admin_Pages {
 						'email' => urlencode( $email ),
 					), home_url() );
 
-					$subject = get_option( 'pfadi_confirm_subject', __( '[{site_title}] Pfadi Abo Bestätigen', 'wp-pfadi-manager' ) );
-					$message = get_option( 'pfadi_confirm_message', __( 'Bitte bestätigen Sie Ihr Abo: {link}', 'wp-pfadi-manager' ) );
+					$subject = get_option( 'pfadi_confirm_subject' );
+					if ( empty( $subject ) ) {
+						$subject = __( '[{site_title}] Pfadi Abo Bestätigen', 'wp-pfadi-manager' );
+					}
+
+					$message = get_option( 'pfadi_confirm_message' );
+					if ( empty( $message ) ) {
+						$message = __( 'Bitte bestätigen Sie Ihr Abo: {link}', 'wp-pfadi-manager' );
+					}
 					
 					$site_title = get_bloginfo( 'name' );
 					$placeholders = array(
@@ -229,9 +236,15 @@ class Pfadi_Admin_Pages {
 					$subject = str_replace( array_keys( $placeholders ), array_values( $placeholders ), $subject );
 					$message = str_replace( array_keys( $placeholders ), array_values( $placeholders ), $message );
 					
-					if ( wp_mail( $email, $subject, $message ) ) {
+					$headers = array( 'Content-Type: text/html; charset=UTF-8' );
+
+					Pfadi_Logger::log( "Sending backend confirmation email to $email" );
+
+					if ( wp_mail( $email, $subject, $message, $headers ) ) {
+						Pfadi_Logger::log( "Backend confirmation email sent successfully to $email" );
 						echo '<div class="notice notice-success is-dismissible"><p>' . __( 'Abonnent hinzugefügt. Bestätigungs-E-Mail wurde versendet.', 'wp-pfadi-manager' ) . '</p></div>';
 					} else {
+						Pfadi_Logger::log( "Failed to send backend confirmation email to $email", 'error' );
 						echo '<div class="notice notice-error is-dismissible"><p>' . __( 'Abonnent hinzugefügt, aber die Bestätigungs-E-Mail konnte nicht gesendet werden. Bitte prüfen Sie Ihre E-Mail-Einstellungen.', 'wp-pfadi-manager' ) . '</p></div>';
 					}
 				}
