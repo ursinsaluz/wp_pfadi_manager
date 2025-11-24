@@ -3,7 +3,7 @@ Contributors: schlingel
 Tags: pfadi, activities, manager, scout
 Requires at least: 6.0
 Tested up to: 6.4
-Stable tag: 1.2.0
+Stable tag: 1.2.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -27,6 +27,7 @@ Features:
     *   **NEU:** "E-Mail erneut senden" Funktion für Admins.
 *   **Stufen-System:** Flexible Verwaltung der Stufen (Biber, Wölfe, Pfadis, etc.) mit Standard-Gruss und Leitung.
 *   **iCal / RSS:** Automatische Feeds für Kalender-Integration.
+*   **Logging:** Debug-Logs im Admin-Bereich einsehbar.
 
 == Installation ==
 
@@ -41,6 +42,12 @@ Features:
 *   `[pfadi_subscribe]`
 
 == Changelog ==
+
+= 1.2.1 =
+*   NEU: Modernisierung des Workflows (Composer, NPM, Linting).
+*   NEU: Logging-Tab in den Einstellungen (Anzeigen, Download, Löschen).
+*   FIX: Diverse Code-Style Verbesserungen (PHPCS, ESLint).
+*   FIX: Sicherheitsverbesserungen (Escaping, Nonces).
 
 = 1.2.0 =
 *   NEU: Anpassbare HTML-Templates für E-Mails (Aktivitäten & Mitteilungen).
