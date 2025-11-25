@@ -17,7 +17,7 @@
 .pfadi-tabs a {
 	text-decoration: none;
 	color: #666;
-	font-weight: bold;
+	font-weight: 700;
 	padding-bottom: 10px;
 	display: inline-block;
 	border-bottom: 2px solid transparent;
@@ -86,7 +86,7 @@
 
 .pfadi-table th {
 	background-color: #f9f9f9;
-	font-weight: bold;
+	font-weight: 700;
 	color: #444;
 }
 
@@ -168,11 +168,12 @@
 .pfadi-list-item.active {
 	background: #e6e6e6;
 	border-left: 4px solid #0073aa;
+
 	/* WordPress Blue or Theme Color */
 }
 
 .pfadi-list-date {
-	font-weight: bold;
+	font-weight: 700;
 	margin-bottom: 5px;
 }
 
@@ -207,6 +208,7 @@
 .pfadi-bring-list {
 	margin-bottom: 20px;
 	white-space: pre-line;
+
 	/* Handle newlines */
 }
 
@@ -220,6 +222,7 @@
 
 /* Responsive */
 @media (max-width: 768px) {
+
 	.pfadi-list-view {
 		flex-direction: column;
 	}
