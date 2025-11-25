@@ -3,7 +3,7 @@ Contributors: schlingel
 Tags: pfadi, activities, manager, scout
 Requires at least: 6.0
 Tested up to: 6.4
-Stable tag: 1.3.0
+Stable tag: 1.3.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -42,6 +42,10 @@ Features:
 *   `[pfadi_subscribe]`
 
 == Changelog ==
+
+= 1.3.1 =
+*   FIX: Linting errors in metaboxes class.
+*   FIX: Minor code style adjustments.
 
 = 1.3.0 =
 *   NEU: Docker-Entwicklungsumgebung für einfacheres Testen.

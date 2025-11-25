@@ -259,6 +259,7 @@ class Pfadi_Metaboxes {
 		if ( ! empty( $_REQUEST['pfadi_resent_emails'] ) ) {
 			// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			$count = intval( $_REQUEST['pfadi_resent_emails'] );
+			/* translators: %s: Number of emails sent. */
 			$message = sprintf( _n( '%s E-Mail wurde erneut versendet.', '%s E-Mails wurden erneut versendet.', $count, 'wp-pfadi-manager' ), number_format_i18n( $count ) );
 			echo '<div id="message" class="updated notice is-dismissible"><p>' . esc_html( $message ) . '</p></div>';
 		}

@@ -2,11 +2,15 @@
 /**
  * Plugin Name: Pfadi-Aktivitäten Manager
  * Description: Digitalisiert und automatisiert den Informationsfluss einer Pfadi-Abteilung.
- * Version:           1.3.0
+ * Version:           1.3.1
  * Author: Ursin Saluz v/o Schlingel mit Antigravity
  * Text Domain: wp-pfadi-manager
  *
  * Changelog:
+ * 1.3.1
+ * - FIX: Linting errors in metaboxes class.
+ * - FIX: Minor code style adjustments.
+ *
  * 1.3.0
  * - NEU: Docker-Entwicklungsumgebung für einfacheres Testen.
  * - NEU: GitHub Actions CI/CD Pipeline repariert und optimiert.
@@ -49,7 +53,7 @@ if ( ! defined( 'WPINC' ) ) {
 /**
  * Current plugin version.
  */
-define( 'PFADI_MANAGER_VERSION', '1.3.0' );
+define( 'PFADI_MANAGER_VERSION', '1.3.1' );
 define( 'PFADI_MANAGER_PATH', plugin_dir_path( __FILE__ ) );
 define( 'PFADI_MANAGER_URL', plugin_dir_url( __FILE__ ) );
 
