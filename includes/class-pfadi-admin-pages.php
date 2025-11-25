@@ -1,16 +1,34 @@
 <?php
 
+/**
+ * Admin pages functionality.
+ *
+ * @package PfadiManager
+ */
+
+/**
+ * Handles the rendering of admin pages.
+ */
 class Pfadi_Admin_Pages {
 
+	/**
+	 * Initialize the class.
+	 */
 	public function __construct() {
 		add_action( 'admin_menu', array( $this, 'add_admin_menus' ) );
 		add_action( 'admin_init', array( $this, 'register_settings' ) );
 	}
 
+	/**
+	 * Register settings (placeholder).
+	 */
 	public function register_settings() {
-		// Settings are handled in class-pfadi-settings.php
+		// Settings are handled in class-pfadi-settings.php.
 	}
 
+	/**
+	 * Add admin menu pages.
+	 */
 	public function add_admin_menus() {
 		add_submenu_page(
 			'edit.php?post_type=activity',
@@ -24,6 +42,9 @@ class Pfadi_Admin_Pages {
 
 
 
+	/**
+	 * Render the subscribers management page.
+	 */
 	public function render_subscribers_page() {
 		require_once PFADI_MANAGER_PATH . 'includes/class-pfadi-subscribers-list-table.php';
 		require_once PFADI_MANAGER_PATH . 'includes/class-pfadi-mailer.php';
@@ -31,7 +52,9 @@ class Pfadi_Admin_Pages {
 		$this->handle_manual_subscription();
 		$this->handle_edit_subscription();
 
-		$action        = isset( $_GET['action'] ) ? $_GET['action'] : '';
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$action = isset( $_GET['action'] ) ? sanitize_text_field( wp_unslash( $_GET['action'] ) ) : '';
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		$subscriber_id = isset( $_GET['subscriber'] ) ? intval( $_GET['subscriber'] ) : 0;
 
 		if ( 'edit' === $action && $subscriber_id > 0 ) {
@@ -106,6 +129,11 @@ class Pfadi_Admin_Pages {
 		<?php
 	}
 
+	/**
+	 * Render the edit subscriber form.
+	 *
+	 * @param int $subscriber_id The subscriber ID.
+	 */
 	private function render_edit_form( $subscriber_id ) {
 		global $wpdb;
 		$table_name = $wpdb->prefix . 'pfadi_subscribers';
@@ -179,6 +207,9 @@ class Pfadi_Admin_Pages {
 		<?php
 	}
 
+	/**
+	 * Handle the edit subscription form submission.
+	 */
 	private function handle_edit_subscription() {
 		if ( isset( $_POST['edit_subscriber'] ) && check_admin_referer( 'edit_subscriber', 'pfadi_edit_subscriber_nonce' ) ) {
 			global $wpdb;
@@ -189,7 +220,7 @@ class Pfadi_Admin_Pages {
 
 			$wpdb->update(
 				$table_name,
-				array( 'subscribed_units' => json_encode( $units ) ),
+				array( 'subscribed_units' => wp_json_encode( $units ) ),
 				array( 'id' => $subscriber_id )
 			);
 
@@ -197,6 +228,9 @@ class Pfadi_Admin_Pages {
 		}
 	}
 
+	/**
+	 * Handle the manual subscription form submission.
+	 */
 	private function handle_manual_subscription() {
 		if ( isset( $_POST['add_subscriber'] ) && check_admin_referer( 'add_subscriber', 'pfadi_add_subscriber_nonce' ) ) {
 			$email = sanitize_email( $_POST['new_subscriber_email'] );
@@ -212,7 +246,7 @@ class Pfadi_Admin_Pages {
 					$wpdb->update(
 						$table_name,
 						array(
-							'subscribed_units' => json_encode( $units ),
+							'subscribed_units' => wp_json_encode( $units ),
 							'status'           => 'active',
 						),
 						array( 'email' => $email )
@@ -224,18 +258,18 @@ class Pfadi_Admin_Pages {
 						$table_name,
 						array(
 							'email'            => $email,
-							'subscribed_units' => json_encode( $units ),
+							'subscribed_units' => wp_json_encode( $units ),
 							'token'            => $token,
 							'status'           => 'pending',
 						)
 					);
 
-					// Send confirmation email
+					// Send confirmation email.
 					$confirm_link = add_query_arg(
 						array(
 							'pfadi_action' => 'confirm',
 							'token'        => $token,
-							'email'        => urlencode( $email ),
+							'email'        => rawurlencode( $email ),
 						),
 						home_url()
 					);

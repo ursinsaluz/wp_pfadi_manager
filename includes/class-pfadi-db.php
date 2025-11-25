@@ -1,7 +1,19 @@
 <?php
 
+/**
+ * Database handling functionality.
+ *
+ * @package PfadiManager
+ */
+
+/**
+ * Handles database table creation and updates.
+ */
 class Pfadi_DB {
 
+	/**
+	 * Create the subscribers table.
+	 */
 	public function create_table() {
 		global $wpdb;
 		$table_name      = $wpdb->prefix . 'pfadi_subscribers';

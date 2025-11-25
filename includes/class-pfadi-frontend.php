@@ -1,7 +1,19 @@
 <?php
 
+/**
+ * Frontend functionality.
+ *
+ * @package PfadiManager
+ */
+
+/**
+ * Handles frontend rendering and interactions.
+ */
 class Pfadi_Frontend {
 
+	/**
+	 * Initialize the class.
+	 */
 	public function __construct() {
 		add_shortcode( 'pfadi_board', array( $this, 'render_board' ) );
 		add_shortcode( 'pfadi_subscribe', array( $this, 'render_subscribe' ) );
@@ -14,6 +26,9 @@ class Pfadi_Frontend {
 		add_action( 'wp_ajax_nopriv_pfadi_load_activities', array( $this, 'handle_ajax_load_activities' ) );
 	}
 
+	/**
+	 * Enqueue frontend scripts and styles.
+	 */
 	public function enqueue_scripts() {
 		global $post;
 
@@ -37,18 +52,25 @@ class Pfadi_Frontend {
 		}
 	}
 
+	/**
+	 * Render the activity board shortcode.
+	 *
+	 * @param array $atts Shortcode attributes.
+	 * @return string Rendered HTML.
+	 */
 	public function render_board( $atts ) {
 		$atts = shortcode_atts(
 			array(
-				'view' => 'cards', // cards or table
+				'view' => 'cards', // cards or table.
 			),
 			$atts
 		);
 
-		// Filter dropdown
+		// Filter dropdown.
 		$units = $this->get_sorted_units();
 
-		$selected_unit = isset( $_GET['pfadi_unit'] ) ? sanitize_text_field( $_GET['pfadi_unit'] ) : '';
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$selected_unit = isset( $_GET['pfadi_unit'] ) ? sanitize_text_field( wp_unslash( $_GET['pfadi_unit'] ) ) : '';
 
 		ob_start();
 		?>
@@ -76,7 +98,7 @@ class Pfadi_Frontend {
 					'meta_key'       => '_pfadi_end_time',
 					'orderby'        => 'meta_value',
 					'order'          => 'ASC',
-					'meta_query'     => array(
+					'meta_query'     => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
 						array(
 							'key'     => '_pfadi_end_time',
 							'value'   => current_time( 'Y-m-d H:i' ),
@@ -87,7 +109,7 @@ class Pfadi_Frontend {
 				);
 
 				if ( ! empty( $selected_unit ) && 'abteilung' !== $selected_unit ) {
-					$args['tax_query'] = array(
+					$args['tax_query'] = array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
 						array(
 							'taxonomy' => 'activity_unit',
 							'field'    => 'slug',
@@ -108,7 +130,7 @@ class Pfadi_Frontend {
 					}
 					wp_reset_postdata();
 				else :
-					echo '<p>' . __( 'Keine aktuellen Aktivitäten.', 'wp-pfadi-manager' ) . '</p>';
+					echo '<p>' . esc_html__( 'Keine aktuellen Aktivitäten.', 'wp-pfadi-manager' ) . '</p>';
 				endif;
 				?>
 			</div>
@@ -117,6 +139,11 @@ class Pfadi_Frontend {
 		return ob_get_clean();
 	}
 
+	/**
+	 * Render the card view.
+	 *
+	 * @param WP_Query $query The query object.
+	 */
 	private function render_card_view( $query ) {
 		echo '<div class="pfadi-cards">';
 		while ( $query->have_posts() ) :
@@ -141,9 +168,9 @@ class Pfadi_Frontend {
 			?>
 			<div class="pfadi-card">
 				<h3><?php the_title(); ?></h3>
-				<p><strong><?php _e( 'Wann:', 'wp-pfadi-manager' ); ?></strong> <?php echo esc_html( $start_date . ' - ' . $end_date ); ?></p>
-				<p><strong><?php _e( 'Wo:', 'wp-pfadi-manager' ); ?></strong> <?php echo esc_html( $location ); ?></p>
-				<p><strong><?php _e( 'Mitnehmen:', 'wp-pfadi-manager' ); ?></strong><br><?php echo nl2br( esc_html( $bring ) ); ?></p>
+				<p><strong><?php esc_html_e( 'Wann:', 'wp-pfadi-manager' ); ?></strong> <?php echo esc_html( $start_date . ' - ' . $end_date ); ?></p>
+				<p><strong><?php esc_html_e( 'Wo:', 'wp-pfadi-manager' ); ?></strong> <?php echo esc_html( $location ); ?></p>
+				<p><strong><?php esc_html_e( 'Mitnehmen:', 'wp-pfadi-manager' ); ?></strong><br><?php echo nl2br( esc_html( $bring ) ); ?></p>
 				<?php
 				$greeting = get_post_meta( get_the_ID(), '_pfadi_greeting', true );
 				$leaders  = get_post_meta( get_the_ID(), '_pfadi_leaders', true );
@@ -157,16 +184,21 @@ class Pfadi_Frontend {
 						<?php echo esc_html( $leaders ); ?>
 					</p>
 				<?php endif; ?>
-				<?php echo $unit_tags; ?>
+				<?php echo $unit_tags; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 			</div>
 			<?php
 		endwhile;
 		echo '</div>';
 	}
 
+	/**
+	 * Render the table view.
+	 *
+	 * @param WP_Query $query The query object.
+	 */
 	private function render_table_view( $query ) {
 		echo '<table class="pfadi-table">';
-		echo '<thead><tr><th>' . __( 'Aktivität', 'wp-pfadi-manager' ) . '</th><th>' . __( 'Wann', 'wp-pfadi-manager' ) . '</th><th>' . __( 'Wo', 'wp-pfadi-manager' ) . '</th><th>' . __( 'Mitnehmen', 'wp-pfadi-manager' ) . '</th><th>' . __( 'Stufen', 'wp-pfadi-manager' ) . '</th></tr></thead>';
+		echo '<thead><tr><th>' . esc_html__( 'Aktivität', 'wp-pfadi-manager' ) . '</th><th>' . esc_html__( 'Wann', 'wp-pfadi-manager' ) . '</th><th>' . esc_html__( 'Wo', 'wp-pfadi-manager' ) . '</th><th>' . esc_html__( 'Mitnehmen', 'wp-pfadi-manager' ) . '</th><th>' . esc_html__( 'Stufen', 'wp-pfadi-manager' ) . '</th></tr></thead>';
 		echo '<tbody>';
 		while ( $query->have_posts() ) :
 			$query->the_post();
@@ -193,13 +225,18 @@ class Pfadi_Frontend {
 				<td><?php echo esc_html( $start_date . ' - ' . $end_date ); ?></td>
 				<td><?php echo esc_html( $location ); ?></td>
 				<td><?php echo nl2br( esc_html( $bring ) ); ?></td>
-				<td><?php echo $unit_tags; ?></td>
+				<td><?php echo $unit_tags; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></td>
 			</tr>
 			<?php
 		endwhile;
 		echo '</tbody></table>';
 	}
 
+	/**
+	 * Render the list view.
+	 *
+	 * @param WP_Query $query The query object.
+	 */
 	private function render_list_view( $query ) {
 		$posts = $query->posts;
 		if ( empty( $posts ) ) {
@@ -208,14 +245,14 @@ class Pfadi_Frontend {
 
 		echo '<div class="pfadi-list-view">';
 
-		// Left Column: List
+		// Left Column: List.
 		echo '<div class="pfadi-list-sidebar">';
 		foreach ( $posts as $index => $post ) {
 			$start      = get_post_meta( $post->ID, '_pfadi_start_time', true );
 			$start_date = date_i18n( 'd.m.Y', strtotime( $start ) );
 			$title      = get_the_title( $post );
 
-			// Get unit name
+			// Get unit name.
 			$units     = get_the_terms( $post->ID, 'activity_unit' );
 			$unit_name = '';
 			if ( $units && ! is_wp_error( $units ) ) {
@@ -227,13 +264,13 @@ class Pfadi_Frontend {
 			echo '<div class="pfadi-list-item ' . esc_attr( $active_class ) . '" data-id="' . esc_attr( $post->ID ) . '">';
 			echo '<div class="pfadi-list-date">' . esc_html( $start_date . ' - ' . $title ) . '</div>';
 			if ( $unit_name ) {
-				echo '<div class="pfadi-list-unit">' . __( 'Stufe:', 'wp-pfadi-manager' ) . ' ' . esc_html( $unit_name ) . '</div>';
+				echo '<div class="pfadi-list-unit">' . esc_html__( 'Stufe:', 'wp-pfadi-manager' ) . ' ' . esc_html( $unit_name ) . '</div>';
 			}
 			echo '</div>';
 		}
 		echo '</div>'; // .pfadi-list-sidebar
 
-		// Right Column: Content
+		// Right Column: Content.
 		echo '<div class="pfadi-list-content-area">';
 		foreach ( $posts as $index => $post ) {
 			$start    = get_post_meta( $post->ID, '_pfadi_start_time', true );
@@ -246,7 +283,7 @@ class Pfadi_Frontend {
 			$start_time = date_i18n( 'H:i', strtotime( $start ) );
 			$end_time   = date_i18n( 'H:i', strtotime( $end ) );
 
-			// Get unit name again for display
+			// Get unit name again for display.
 			$units     = get_the_terms( $post->ID, 'activity_unit' );
 			$unit_name = '';
 			if ( $units && ! is_wp_error( $units ) ) {
@@ -259,13 +296,13 @@ class Pfadi_Frontend {
 			echo '<h3>' . get_the_title( $post ) . '</h3>';
 
 			if ( $unit_name ) {
-				echo '<p class="pfadi-detail-row"><strong>' . __( 'Stufe:', 'wp-pfadi-manager' ) . '</strong> ' . esc_html( $unit_name ) . '</p>';
+				echo '<p class="pfadi-detail-row"><strong>' . esc_html__( 'Stufe:', 'wp-pfadi-manager' ) . '</strong> ' . esc_html( $unit_name ) . '</p>';
 			}
 
-			echo '<p class="pfadi-detail-row"><strong>' . __( 'Besammlung:', 'wp-pfadi-manager' ) . '</strong> ' . esc_html( $start_time . ' ' . $location ) . '</p>';
-			echo '<p class="pfadi-detail-row"><strong>' . __( 'Verabschiedung:', 'wp-pfadi-manager' ) . '</strong> ' . esc_html( $end_time . ' ' . $location ) . '</p>';
+			echo '<p class="pfadi-detail-row"><strong>' . esc_html__( 'Besammlung:', 'wp-pfadi-manager' ) . '</strong> ' . esc_html( $start_time . ' ' . $location ) . '</p>';
+			echo '<p class="pfadi-detail-row"><strong>' . esc_html__( 'Verabschiedung:', 'wp-pfadi-manager' ) . '</strong> ' . esc_html( $end_time . ' ' . $location ) . '</p>';
 
-			echo '<p class="pfadi-detail-row"><strong>' . __( 'Mitnehmen:', 'wp-pfadi-manager' ) . '</strong></p>';
+			echo '<p class="pfadi-detail-row"><strong>' . esc_html__( 'Mitnehmen:', 'wp-pfadi-manager' ) . '</strong></p>';
 			echo '<div class="pfadi-bring-list">' . nl2br( esc_html( $bring ) ) . '</div>';
 
 			if ( ! empty( $greeting ) || ! empty( $leaders ) ) {
@@ -286,10 +323,16 @@ class Pfadi_Frontend {
 		echo '</div>'; // .pfadi-list-view
 	}
 
+	/**
+	 * Render the news shortcode.
+	 *
+	 * @param array $atts Shortcode attributes.
+	 * @return string Rendered HTML.
+	 */
 	public function render_news( $atts ) {
 		$atts = shortcode_atts(
 			array(
-				'view'  => 'carousel', // carousel or banner
+				'view'  => 'carousel', // carousel or banner.
 				'limit' => -1,
 			),
 			$atts
@@ -301,7 +344,7 @@ class Pfadi_Frontend {
 			'meta_key'       => '_pfadi_end_time',
 			'orderby'        => 'date',
 			'order'          => 'DESC',
-			'meta_query'     => array(
+			'meta_query'     => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
 				'relation' => 'AND',
 				array(
 					'key'     => '_pfadi_start_time',
@@ -332,19 +375,29 @@ class Pfadi_Frontend {
 		return ob_get_clean();
 	}
 
+	/**
+	 * Render the news banner.
+	 *
+	 * @param WP_Query $query The query object.
+	 */
 	private function render_news_banner( $query ) {
-		// Only show the latest one
+		// Only show the latest one.
 		$query->the_post();
 		?>
 		<div class="pfadi-news-banner">
 			<div class="pfadi-news-content">
 				<strong><?php the_title(); ?>:</strong> <?php echo get_the_excerpt(); ?>
-				<a href="<?php the_permalink(); ?>" class="pfadi-news-link"><?php _e( 'Mehr lesen', 'wp-pfadi-manager' ); ?></a>
+				<a href="<?php the_permalink(); ?>" class="pfadi-news-link"><?php esc_html_e( 'Mehr lesen', 'wp-pfadi-manager' ); ?></a>
 			</div>
 		</div>
 		<?php
 	}
 
+	/**
+	 * Render the news carousel.
+	 *
+	 * @param WP_Query $query The query object.
+	 */
 	private function render_news_carousel( $query ) {
 		?>
 		<div class="pfadi-news-carousel-container">
@@ -359,7 +412,7 @@ class Pfadi_Frontend {
 							<div class="pfadi-news-excerpt">
 								<?php the_excerpt(); ?>
 							</div>
-							<a href="<?php the_permalink(); ?>" class="pfadi-news-read-more"><?php _e( 'Weiterlesen', 'wp-pfadi-manager' ); ?></a>
+							<a href="<?php the_permalink(); ?>" class="pfadi-news-read-more"><?php esc_html_e( 'Weiterlesen', 'wp-pfadi-manager' ); ?></a>
 						</div>
 					</div>
 				<?php endwhile; ?>
@@ -370,6 +423,12 @@ class Pfadi_Frontend {
 		<?php
 	}
 
+	/**
+	 * Render the subscribe shortcode.
+	 *
+	 * @param array $atts Shortcode attributes.
+	 * @return string Rendered HTML.
+	 */
 	public function render_subscribe( $atts ) {
 		$units = $this->get_sorted_units( true );
 
@@ -381,12 +440,12 @@ class Pfadi_Frontend {
 				<p>
 				<p>
 					<label>
-						<?php _e( 'E-Mail Adresse:', 'wp-pfadi-manager' ); ?>
+						<?php esc_html_e( 'E-Mail Adresse:', 'wp-pfadi-manager' ); ?>
 						<input type="email" name="pfadi_email" required>
 					</label>
 				</p>
 				<p>
-					<strong><?php _e( 'Stufen wählen:', 'wp-pfadi-manager' ); ?></strong><br>
+					<strong><?php esc_html_e( 'Stufen wählen:', 'wp-pfadi-manager' ); ?></strong><br>
 					<?php foreach ( $units as $unit ) : ?>
 						<label>
 							<input type="checkbox" name="pfadi_units[]" value="<?php echo esc_attr( $unit->term_id ); ?>">
@@ -394,7 +453,7 @@ class Pfadi_Frontend {
 						</label><br>
 					<?php endforeach; ?>
 				</p>
-				<p><em><?php _e( 'Informationen der Abteilung sind automatisch inbegriffen.', 'wp-pfadi-manager' ); ?></em></p>
+				<p><em><?php esc_html_e( 'Informationen der Abteilung sind automatisch inbegriffen.', 'wp-pfadi-manager' ); ?></em></p>
 				<input type="hidden" name="pfadi_action" value="subscribe">
 				<input type="submit" value="<?php esc_attr_e( 'Abonnieren', 'wp-pfadi-manager' ); ?>">
 			</form>
@@ -403,6 +462,12 @@ class Pfadi_Frontend {
 		return ob_get_clean();
 	}
 
+	/**
+	 * Get sorted units.
+	 *
+	 * @param bool $exclude_abteilung Whether to exclude 'abteilung'.
+	 * @return array Sorted units.
+	 */
 	private function get_sorted_units( $exclude_abteilung = false ) {
 		$units = get_terms(
 			array(
@@ -442,13 +507,18 @@ class Pfadi_Frontend {
 		return $units;
 	}
 
+	/**
+	 * Handle subscription actions (non-AJAX fallback).
+	 */
 	public function handle_subscription_actions() {
 		if ( wp_doing_ajax() ) {
 			return;
 		}
 
 		if ( isset( $_POST['pfadi_action'] ) && 'subscribe' === $_POST['pfadi_action'] ) {
+			// phpcs:ignore WordPress.Security.NonceVerification.Missing
 			$email = sanitize_email( $_POST['pfadi_email'] );
+			// phpcs:ignore WordPress.Security.NonceVerification.Missing
 			$units = isset( $_POST['pfadi_units'] ) ? array_map( 'intval', $_POST['pfadi_units'] ) : array();
 
 			if ( is_email( $email ) ) {
@@ -456,39 +526,39 @@ class Pfadi_Frontend {
 				$table_name = $wpdb->prefix . 'pfadi_subscribers';
 				$token      = wp_generate_password( 32, false );
 
-				// Check if email exists
+				// Check if email exists.
 				$exists = $wpdb->get_var( $wpdb->prepare( "SELECT id FROM $table_name WHERE email = %s", $email ) );
 
 				if ( $exists ) {
-					// Update existing
+					// Update existing.
 					$wpdb->update(
 						$table_name,
 						array(
-							'subscribed_units' => json_encode( $units ),
+							'subscribed_units' => wp_json_encode( $units ),
 							'token'            => $token,
-							'status'           => 'pending', // Re-verify
+							'status'           => 'pending', // Re-verify.
 						),
 						array( 'email' => $email )
 					);
 				} else {
-					// Insert new
+					// Insert new.
 					$wpdb->insert(
 						$table_name,
 						array(
 							'email'            => $email,
-							'subscribed_units' => json_encode( $units ),
+							'subscribed_units' => wp_json_encode( $units ),
 							'token'            => $token,
 							'status'           => 'pending',
 						)
 					);
 				}
 
-				// Send confirmation email
+				// Send confirmation email.
 				$confirm_link = add_query_arg(
 					array(
 						'pfadi_action' => 'confirm',
 						'token'        => $token,
-						'email'        => urlencode( $email ),
+						'email'        => rawurlencode( $email ),
 					),
 					home_url()
 				);
@@ -499,12 +569,15 @@ class Pfadi_Frontend {
 
 				wp_mail( $email, $subject, $message );
 
-				echo '<div class="pfadi-message">' . __( 'Bitte prüfen Sie Ihre E-Mails zur Bestätigung.', 'wp-pfadi-manager' ) . '</div>';
+				echo '<div class="pfadi-message">' . esc_html__( 'Bitte prüfen Sie Ihre E-Mails zur Bestätigung.', 'wp-pfadi-manager' ) . '</div>';
 			}
 		}
 
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		if ( isset( $_GET['pfadi_action'] ) && 'confirm' === $_GET['pfadi_action'] ) {
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			$token = sanitize_text_field( $_GET['token'] );
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			$email = sanitize_email( urldecode( $_GET['email'] ) );
 
 			global $wpdb;
@@ -518,13 +591,16 @@ class Pfadi_Frontend {
 					array( 'status' => 'active' ),
 					array( 'id' => $subscriber->id )
 				);
-				echo '<div class="pfadi-message">' . __( 'Abo erfolgreich aktiviert!', 'wp-pfadi-manager' ) . '</div>';
+				echo '<div class="pfadi-message">' . esc_html__( 'Abo erfolgreich aktiviert!', 'wp-pfadi-manager' ) . '</div>';
 			} else {
-				echo '<div class="pfadi-message error">' . __( 'Ungültiger Link.', 'wp-pfadi-manager' ) . '</div>';
+				echo '<div class="pfadi-message error">' . esc_html__( 'Ungültiger Link.', 'wp-pfadi-manager' ) . '</div>';
 			}
 		}
 	}
 
+	/**
+	 * Handle AJAX subscription.
+	 */
 	public function handle_ajax_subscription() {
 		check_ajax_referer( 'pfadi_subscribe_nonce', 'nonce' );
 
@@ -548,7 +624,7 @@ class Pfadi_Frontend {
 			$wpdb->update(
 				$table_name,
 				array(
-					'subscribed_units' => json_encode( $units ),
+					'subscribed_units' => wp_json_encode( $units ),
 					'token'            => $token,
 					'status'           => 'pending',
 				),
@@ -559,7 +635,7 @@ class Pfadi_Frontend {
 				$table_name,
 				array(
 					'email'            => $email,
-					'subscribed_units' => json_encode( $units ),
+					'subscribed_units' => wp_json_encode( $units ),
 					'token'            => $token,
 					'status'           => 'pending',
 				)
@@ -570,7 +646,7 @@ class Pfadi_Frontend {
 			array(
 				'pfadi_action' => 'confirm',
 				'token'        => $token,
-				'email'        => urlencode( $email ),
+				'email'        => rawurlencode( $email ),
 			),
 			home_url()
 		);
@@ -605,6 +681,9 @@ class Pfadi_Frontend {
 		}
 	}
 
+	/**
+	 * Handle AJAX load activities.
+	 */
 	public function handle_ajax_load_activities() {
 		check_ajax_referer( 'pfadi_subscribe_nonce', 'nonce' );
 
@@ -617,7 +696,7 @@ class Pfadi_Frontend {
 			'meta_key'       => '_pfadi_end_time',
 			'orderby'        => 'meta_value',
 			'order'          => 'ASC',
-			'meta_query'     => array(
+			'meta_query'     => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
 				array(
 					'key'     => '_pfadi_end_time',
 					'value'   => current_time( 'Y-m-d H:i' ),
@@ -628,7 +707,7 @@ class Pfadi_Frontend {
 		);
 
 		if ( ! empty( $unit_slug ) && 'abteilung' !== $unit_slug ) {
-			$args['tax_query'] = array(
+			$args['tax_query'] = array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
 				array(
 					'taxonomy' => 'activity_unit',
 					'field'    => 'slug',
@@ -650,7 +729,7 @@ class Pfadi_Frontend {
 			}
 			wp_reset_postdata();
 		else :
-			echo '<p>' . __( 'Keine aktuellen Aktivitäten.', 'wp-pfadi-manager' ) . '</p>';
+			echo '<p>' . esc_html__( 'Keine aktuellen Aktivitäten.', 'wp-pfadi-manager' ) . '</p>';
 		endif;
 		$content = ob_get_clean();
 

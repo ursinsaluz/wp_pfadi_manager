@@ -1,21 +1,37 @@
 <?php
 
+/**
+ * Block editor integration.
+ *
+ * @package PfadiManager
+ */
+
+/**
+ * Registers and renders Gutenberg blocks.
+ */
 class Pfadi_Blocks {
 
+	/**
+	 * Initialize the class.
+	 */
 	public function __construct() {
 		add_action( 'init', array( $this, 'register_blocks' ) );
 	}
 
+	/**
+	 * Register blocks and assets.
+	 */
 	public function register_blocks() {
-		// Register the block editor script
+		// Register the block editor script.
 		wp_register_script(
 			'pfadi-blocks-js',
 			PFADI_MANAGER_URL . 'assets/js/blocks.js',
 			array( 'wp-blocks', 'wp-element', 'wp-editor', 'wp-components', 'wp-server-side-render', 'wp-i18n' ),
-			'1.0.0'
+			'1.0.0',
+			true
 		);
 
-		// Localize script with dynamic data
+		// Localize script with dynamic data.
 		$units = get_terms(
 			array(
 				'taxonomy'   => 'activity_unit',
@@ -41,7 +57,7 @@ class Pfadi_Blocks {
 			)
 		);
 
-		// Register Blocks
+		// Register Blocks.
 		register_block_type(
 			'pfadi/board',
 			array(
@@ -87,8 +103,14 @@ class Pfadi_Blocks {
 		);
 	}
 
+	/**
+	 * Render the board block.
+	 *
+	 * @param array $attributes Block attributes.
+	 * @return string Rendered HTML.
+	 */
 	public function render_board_block( $attributes ) {
-		// Reuse the shortcode logic
+		// Reuse the shortcode logic.
 		$frontend = new Pfadi_Frontend();
 		$atts     = array(
 			'view' => isset( $attributes['view'] ) ? $attributes['view'] : 'cards',
@@ -104,11 +126,24 @@ class Pfadi_Blocks {
 		return $frontend->render_board( $atts );
 	}
 
+	/**
+	 * Render the subscribe block.
+	 *
+	 * @param array $attributes Block attributes.
+	 * @return string Rendered HTML.
+	 */
 	public function render_subscribe_block( $attributes ) {
 		$frontend = new Pfadi_Frontend();
+		// phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found
 		return $frontend->render_subscribe( array() );
 	}
 
+	/**
+	 * Render the news block.
+	 *
+	 * @param array $attributes Block attributes.
+	 * @return string Rendered HTML.
+	 */
 	public function render_news_block( $attributes ) {
 		$frontend = new Pfadi_Frontend();
 		return $frontend->render_news( $attributes );
