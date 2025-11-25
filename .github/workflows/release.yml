@@ -30,7 +30,7 @@ jobs:
       run: |
         mkdir build
         mkdir build/wp-pfadi-manager
-        rsync -av --exclude='build' --exclude='.git' --exclude='.github' --exclude='tests' --exclude='bin' --exclude='node_modules' --exclude='docker-compose.yml' --exclude='CONTRIBUTING.md' --exclude='.stylelintignore' --exclude='.gitignore' --exclude='.editorconfig' . build/wp-pfadi-manager/
+        rsync -av --exclude='build' --exclude='.git' --exclude='.github' --exclude='tests' --exclude='bin' --exclude='node_modules' --exclude='docker-compose.yml' --exclude='CONTRIBUTING.md' --exclude='.stylelintignore' --exclude='.gitignore' --exclude='.editorconfig' --exclude='.eslintrc.json' --exclude='.phpunit.result.cache' --exclude='.stylelintrc.json' --exclude='composer.json' --exclude='composer.lock' --exclude='package-lock.json' --exclude='package.json' --exclude='phpcs.xml.dist' --exclude='phpunit.xml.dist' . build/wp-pfadi-manager/
         cd build
         zip -r ../wp-pfadi-manager.zip wp-pfadi-manager
         cd ..
