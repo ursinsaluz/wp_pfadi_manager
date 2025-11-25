@@ -22,7 +22,7 @@ jQuery(document).ready(function ($) {
 		// We use the last selected unit (or first found) to determine values
 		for (let i = 0; i < selectedUnits.length; i++) {
 			const label = selectedUnits[i];
-			
+
 			// Find slug in pfadiSettings where label matches
 			for (const slug in pfadiSettings) {
 				if (pfadiSettings.hasOwnProperty(slug)) {
@@ -31,7 +31,7 @@ jQuery(document).ready(function ($) {
 						leaders = pfadiSettings[slug].leaders;
 						starttime = pfadiSettings[slug].starttime;
 						endtime = pfadiSettings[slug].endtime;
-						break; 
+						break;
 					}
 				}
 			}
