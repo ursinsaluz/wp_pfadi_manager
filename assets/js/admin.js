@@ -18,54 +18,34 @@ jQuery(document).ready(function ($) {
 		let starttime = '';
 		let endtime = '';
 
-		// Check if 'Abteilung' is selected
-		if (selectedUnits.includes('Abteilung')) {
-			greeting = pfadiSettings.abteilung.greeting;
-			leaders = pfadiSettings.abteilung.leaders;
-		} else {
-			// Use the first selected unit for now, or maybe combine them?
-			// Spec says: "Wenn eine Stufe (z.B. "Wölfe") angeklickt wird... lädt die Werte"
-			// Let's use the most recently clicked one effectively by iterating
-			// But since we are iterating all checked, let's prioritize by hierarchy if needed or just take the last one
-			// Actually, let's just take the first one found that isn't Abteilung if Abteilung isn't there.
-			// Or better, let's trigger this on change event specifically.
-
-			// However, we are inside updateFields which might be called on load too?
-			// The spec says: "Event: Wenn eine Stufe (z.B. "Wölfe") angeklickt wird."
-
-			// Map labels to slugs
-			const slugMap = {
-				Biber: 'biber',
-				Wölfe: 'wolfe',
-				Pfadis: 'pfadis',
-				Pios: 'pios',
-				Rover: 'rover',
-				Abteilung: 'abteilung',
-			};
-
-			for (let i = 0; i < selectedUnits.length; i++) {
-				const label = selectedUnits[i];
-				const slug = slugMap[label];
-
-				if (slug && pfadiSettings[slug]) {
-					greeting = pfadiSettings[slug].greeting;
-					leaders = pfadiSettings[slug].leaders;
-					starttime = pfadiSettings[slug].starttime;
-					endtime = pfadiSettings[slug].endtime;
-					break; // Take the first valid one found
+		// Iterate over settings to find matching slug by label
+		// We use the last selected unit (or first found) to determine values
+		for (let i = 0; i < selectedUnits.length; i++) {
+			const label = selectedUnits[i];
+			
+			// Find slug in pfadiSettings where label matches
+			for (const slug in pfadiSettings) {
+				if (pfadiSettings.hasOwnProperty(slug)) {
+					if (pfadiSettings[slug].label === label) {
+						greeting = pfadiSettings[slug].greeting;
+						leaders = pfadiSettings[slug].leaders;
+						starttime = pfadiSettings[slug].starttime;
+						endtime = pfadiSettings[slug].endtime;
+						break; 
+					}
 				}
+			}
+			// If we found values, break (prioritize first selected)
+			if (greeting || leaders) {
+				break;
 			}
 		}
 
-		// Only update if fields are empty or we want to overwrite?
-		// Spec says: "Aktion: Das Script lädt die in 3.1 definierten Werte (Gruss & Leitung) und fügt sie in die Textfelder ein."
-		// It implies overwriting or filling. Let's fill.
-
-		// Update Greeting and Leaders if empty
-		if (greeting && !$('#pfadi_greeting').val()) {
+		// Update Greeting and Leaders (Overwrite to ensure it updates)
+		if (greeting) {
 			$('#pfadi_greeting').val(greeting);
 		}
-		if (leaders && !$('#pfadi_leaders').val()) {
+		if (leaders) {
 			$('#pfadi_leaders').val(leaders);
 		}
 

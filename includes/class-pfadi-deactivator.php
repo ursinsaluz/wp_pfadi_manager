@@ -23,5 +23,4 @@ class Pfadi_Deactivator {
 		// Flush rewrite rules so that custom post types work.
 		flush_rewrite_rules();
 	}
-
 }

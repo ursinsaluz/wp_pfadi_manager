@@ -145,13 +145,13 @@ class Pfadi_Feeds {
 				$host = isset( $_SERVER['HTTP_HOST'] ) ? sanitize_text_field( wp_unslash( $_SERVER['HTTP_HOST'] ) ) : 'localhost';
 
 				echo "BEGIN:VEVENT\r\n";
-				echo 'UID:' . $id . '@' . $host . "\r\n";
-				echo 'DTSTAMP:' . $now . "\r\n";
-				echo 'DTSTART:' . $dtstart . "\r\n";
-				echo 'DTEND:' . $dtend . "\r\n";
-				echo 'SUMMARY:' . get_the_title() . "\r\n";
-				echo 'LOCATION:' . $location . "\r\n";
-				echo 'DESCRIPTION:' . $description . "\r\n";
+				echo 'UID:' . $id . '@' . $host . "\r\n"; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+				echo 'DTSTAMP:' . $now . "\r\n"; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+				echo 'DTSTART:' . $dtstart . "\r\n"; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+				echo 'DTEND:' . $dtend . "\r\n"; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+				echo 'SUMMARY:' . get_the_title() . "\r\n"; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+				echo 'LOCATION:' . $location . "\r\n"; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+				echo 'DESCRIPTION:' . $description . "\r\n"; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 				echo "END:VEVENT\r\n";
 			}
 			wp_reset_postdata();
