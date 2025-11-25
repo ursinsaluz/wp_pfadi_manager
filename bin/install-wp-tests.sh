@@ -42,8 +42,24 @@ if [ ! -d $TESTS_DIR ]; then
 fi
 
 if [ ! -f $TESTS_DIR/includes/functions.php ]; then
-    svn co --quiet https://develop.svn.wordpress.org/trunk/tests/phpunit/includes/ $TESTS_DIR/includes
-    svn co --quiet https://develop.svn.wordpress.org/trunk/tests/phpunit/data/ $TESTS_DIR/data
+	echo "Downloading WordPress tests using Git..."
+	# Create a temporary directory for the clone
+	mkdir -p $TESTS_DIR/tmp-wp-develop
+	
+	# Clone with sparse checkout to minimize download size
+	git clone --depth 1 --filter=blob:none --sparse https://github.com/WordPress/wordpress-develop.git $TESTS_DIR/tmp-wp-develop
+	
+	# Checkout only the required directories
+	cd $TESTS_DIR/tmp-wp-develop
+	git sparse-checkout set tests/phpunit/includes tests/phpunit/data
+	
+	# Move the directories to the expected location
+	mv tests/phpunit/includes $TESTS_DIR/includes
+	mv tests/phpunit/data $TESTS_DIR/data
+	
+	# Cleanup
+	cd ..
+	rm -rf $TESTS_DIR/tmp-wp-develop
 fi
 
 if [ ! -f $TESTS_DIR/wp-tests-config.php ]; then
