@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Frontend functionality.
  *
@@ -80,7 +79,11 @@ class Pfadi_Frontend {
 				<?php foreach ( $units as $unit ) : ?>
 					<?php
 					if ( 'abteilung' === $unit->slug ) {
-						continue; }
+						continue;
+					}
+					if ( true === $exclude_abteilung && 'abteilung' === $unit->slug ) {
+						continue;
+					}
 					?>
 					<li>
 						<a href="#" data-unit="<?php echo esc_attr( $unit->slug ); ?>" class="<?php echo $selected_unit === $unit->slug ? 'active' : ''; ?>">
@@ -95,7 +98,7 @@ class Pfadi_Frontend {
 				$args = array(
 					'post_type'      => 'activity',
 					'posts_per_page' => -1,
-					'meta_key'       => '_pfadi_end_time',
+					'meta_key'       => '_pfadi_end_time', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
 					'orderby'        => 'meta_value',
 					'order'          => 'ASC',
 					'meta_query'     => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
@@ -341,7 +344,7 @@ class Pfadi_Frontend {
 		$args = array(
 			'post_type'      => 'announcement',
 			'posts_per_page' => $atts['limit'],
-			'meta_key'       => '_pfadi_end_time',
+			'meta_key'       => '_pfadi_end_time', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
 			'orderby'        => 'date',
 			'order'          => 'DESC',
 			'meta_query'     => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
@@ -429,7 +432,7 @@ class Pfadi_Frontend {
 	 * @param array $atts Shortcode attributes.
 	 * @return string Rendered HTML.
 	 */
-	public function render_subscribe( $atts ) {
+	public function render_subscribe( $atts ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found
 		$units = $this->get_sorted_units( true );
 
 		ob_start();
@@ -481,13 +484,13 @@ class Pfadi_Frontend {
 		usort(
 			$units,
 			function ( $a, $b ) use ( $order ) {
-				$pos_a = array_search( $a->slug, $order );
-				$pos_b = array_search( $b->slug, $order );
+				$pos_a = array_search( $a->slug, $order, true );
+				$pos_b = array_search( $b->slug, $order, true );
 
-				if ( $pos_a === false ) {
+				if ( false === $pos_a ) {
 					return 1;
 				}
-				if ( $pos_b === false ) {
+				if ( false === $pos_b ) {
 					return -1;
 				}
 
@@ -515,9 +518,10 @@ class Pfadi_Frontend {
 			return;
 		}
 
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing
 		if ( isset( $_POST['pfadi_action'] ) && 'subscribe' === $_POST['pfadi_action'] ) {
 			// phpcs:ignore WordPress.Security.NonceVerification.Missing
-			$email = sanitize_email( $_POST['pfadi_email'] );
+			$email = isset( $_POST['pfadi_email'] ) ? sanitize_email( wp_unslash( $_POST['pfadi_email'] ) ) : '';
 			// phpcs:ignore WordPress.Security.NonceVerification.Missing
 			$units = isset( $_POST['pfadi_units'] ) ? array_map( 'intval', $_POST['pfadi_units'] ) : array();
 
@@ -527,6 +531,7 @@ class Pfadi_Frontend {
 				$token      = wp_generate_password( 32, false );
 
 				// Check if email exists.
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 				$exists = $wpdb->get_var( $wpdb->prepare( "SELECT id FROM $table_name WHERE email = %s", $email ) );
 
 				if ( $exists ) {
@@ -576,13 +581,14 @@ class Pfadi_Frontend {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		if ( isset( $_GET['pfadi_action'] ) && 'confirm' === $_GET['pfadi_action'] ) {
 			// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-			$token = sanitize_text_field( $_GET['token'] );
-			// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-			$email = sanitize_email( urldecode( $_GET['email'] ) );
+			$token = isset( $_GET['token'] ) ? sanitize_text_field( wp_unslash( $_GET['token'] ) ) : '';
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+			$email = isset( $_GET['email'] ) ? sanitize_email( urldecode( wp_unslash( $_GET['email'] ) ) ) : '';
 
 			global $wpdb;
 			$table_name = $wpdb->prefix . 'pfadi_subscribers';
 
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 			$subscriber = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $table_name WHERE email = %s AND token = %s", $email, $token ) );
 
 			if ( $subscriber ) {
@@ -604,7 +610,7 @@ class Pfadi_Frontend {
 	public function handle_ajax_subscription() {
 		check_ajax_referer( 'pfadi_subscribe_nonce', 'nonce' );
 
-		$email = sanitize_email( $_POST['pfadi_email'] );
+		$email = isset( $_POST['pfadi_email'] ) ? sanitize_email( wp_unslash( $_POST['pfadi_email'] ) ) : '';
 		$units = isset( $_POST['pfadi_units'] ) ? array_map( 'intval', $_POST['pfadi_units'] ) : array();
 
 		Pfadi_Logger::log( "Subscription attempt for email: $email with units: " . implode( ',', $units ) );
@@ -618,6 +624,7 @@ class Pfadi_Frontend {
 		$table_name = $wpdb->prefix . 'pfadi_subscribers';
 		$token      = wp_generate_password( 32, false );
 
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		$exists = $wpdb->get_var( $wpdb->prepare( "SELECT id FROM $table_name WHERE email = %s", $email ) );
 
 		if ( $exists ) {
@@ -668,7 +675,7 @@ class Pfadi_Frontend {
 		$headers = array( 'Content-Type: text/html; charset=UTF-8' );
 		// Removing custom From header to avoid spoofing rejection
 		// $admin_email = get_option( 'admin_email' );
-		// $headers[] = 'From: Pfadi Manager <' . $admin_email . '>';
+		// $headers[] = 'From: Pfadi Manager <' . $admin_email . '>';.
 
 		$sent = wp_mail( $email, $subject, $message, $headers );
 
@@ -687,13 +694,13 @@ class Pfadi_Frontend {
 	public function handle_ajax_load_activities() {
 		check_ajax_referer( 'pfadi_subscribe_nonce', 'nonce' );
 
-		$unit_slug = isset( $_POST['unit'] ) ? sanitize_text_field( $_POST['unit'] ) : '';
-		$view      = isset( $_POST['view'] ) ? sanitize_text_field( $_POST['view'] ) : 'cards';
+		$unit_slug = isset( $_POST['unit'] ) ? sanitize_text_field( wp_unslash( $_POST['unit'] ) ) : '';
+		$view      = isset( $_POST['view'] ) ? sanitize_text_field( wp_unslash( $_POST['view'] ) ) : 'cards';
 
 		$args = array(
 			'post_type'      => 'activity',
 			'posts_per_page' => -1,
-			'meta_key'       => '_pfadi_end_time',
+			'meta_key'       => '_pfadi_end_time', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
 			'orderby'        => 'meta_value',
 			'order'          => 'ASC',
 			'meta_query'     => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query

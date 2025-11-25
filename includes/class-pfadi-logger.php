@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Logging functionality.
  *

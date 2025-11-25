@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Feed functionality.
  *

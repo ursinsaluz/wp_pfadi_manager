@@ -1,6 +1,7 @@
 <?php
-
 /**
+ * Loader functionality.
+ *
  * @package PfadiManager
  */
 
@@ -54,6 +55,10 @@ class Pfadi_Loader {
 		require_once PFADI_MANAGER_PATH . 'includes/class-pfadi-blocks.php';
 	}
 
+	/**
+	 * Register all of the hooks related to the admin area functionality
+	 * of the plugin.
+	 */
 	private function define_admin_hooks() {
 		$cpt = new Pfadi_CPT();
 		add_action( 'init', array( $cpt, 'register_cpt' ) );
@@ -69,14 +74,21 @@ class Pfadi_Loader {
 		new Pfadi_Admin_Pages();
 	}
 
+	/**
+	 * Register all of the hooks related to the public-facing functionality
+	 * of the plugin.
+	 */
 	private function define_public_hooks() {
 		new Pfadi_Frontend();
 		new Pfadi_Feeds();
 		new Pfadi_Blocks();
 	}
 
+	/**
+	 * Run the loader to execute all of the hooks with WordPress.
+	 */
 	public function run() {
-		// This is where we would execute the loader if we had a more complex hook registry system
-		// For now, the hooks are added directly in define_*_hooks
+		// This is where we would execute the loader if we had a more complex hook registry system.
+		// For now, the hooks are added directly in define_*_hooks.
 	}
 }

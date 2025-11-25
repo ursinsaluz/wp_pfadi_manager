@@ -51,7 +51,7 @@ define( 'PFADI_MANAGER_URL', plugin_dir_url( __FILE__ ) );
  * The code that runs during plugin activation.
  * This action is documented in includes/class-pfadi-activator.php
  */
-function activate_pfadi_manager() {
+function pfadi_manager_activate() {
 	require_once plugin_dir_path( __FILE__ ) . 'includes/class-pfadi-activator.php';
 	Pfadi_Activator::activate();
 }
@@ -60,13 +60,13 @@ function activate_pfadi_manager() {
  * The code that runs during plugin deactivation.
  * This action is documented in includes/class-pfadi-deactivator.php
  */
-function deactivate_pfadi_manager() {
+function pfadi_manager_deactivate() {
 	require_once plugin_dir_path( __FILE__ ) . 'includes/class-pfadi-deactivator.php';
 	Pfadi_Deactivator::deactivate();
 }
 
-register_activation_hook( __FILE__, 'activate_pfadi_manager' );
-register_deactivation_hook( __FILE__, 'deactivate_pfadi_manager' );
+register_activation_hook( __FILE__, 'pfadi_manager_activate' );
+register_deactivation_hook( __FILE__, 'pfadi_manager_deactivate' );
 
 /**
  * The core plugin class that is used to define internationalization,

@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Block editor integration.
  *
@@ -132,12 +131,10 @@ class Pfadi_Blocks {
 	 * @param array $attributes Block attributes.
 	 * @return string Rendered HTML.
 	 */
-	public function render_subscribe_block( $attributes ) {
+	public function render_subscribe_block( $attributes ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found
 		$frontend = new Pfadi_Frontend();
-		// phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found
 		return $frontend->render_subscribe( array() );
 	}
-
 	/**
 	 * Render the news block.
 	 *

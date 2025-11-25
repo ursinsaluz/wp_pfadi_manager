@@ -1,12 +1,23 @@
 <?php
+/**
+ * Custom Post Type registration.
+ *
+ * @package PfadiManager
+ */
 
+/**
+ * Registers the 'activity' and 'announcement' custom post types.
+ */
 class Pfadi_CPT {
 
+	/**
+	 * Register the custom post types.
+	 */
 	public function register_cpt() {
 		$slug              = get_option( 'pfadi_cpt_slug', 'activity' );
 		$announcement_slug = get_option( 'pfadi_announcement_slug', 'mitteilung' );
 
-		// Register Custom Post Status 'Archived'
+		// Register Custom Post Status 'Archived'.
 		register_post_status(
 			'archived',
 			array(
@@ -15,6 +26,7 @@ class Pfadi_CPT {
 				'exclude_from_search'       => true,
 				'show_in_admin_all_list'    => false,
 				'show_in_admin_status_list' => true,
+				// translators: %s: Number of archived posts.
 				'label_count'               => _n_noop( 'Archiviert <span class="count">(%s)</span>', 'Archiviert <span class="count">(%s)</span>', 'wp-pfadi-manager' ),
 			)
 		);
@@ -67,13 +79,13 @@ class Pfadi_CPT {
 			'exclude_from_search' => false,
 			'publicly_queryable'  => true,
 			'capability_type'     => 'post',
-			'show_in_rest'        => false, // Disable Block Editor
+			'show_in_rest'        => false, // Disable Block Editor.
 			'rewrite'             => array( 'slug' => $slug ),
 		);
 		register_post_type( 'activity', $args );
 
 		// Register Announcement CPT
-		// Register Announcement CPT
+		// Register Announcement CPT.
 		$labels_announcement = array(
 			'name'               => _x( 'Mitteilungen', 'Post Type General Name', 'wp-pfadi-manager' ),
 			'singular_name'      => _x( 'Mitteilung', 'Post Type Singular Name', 'wp-pfadi-manager' ),
@@ -109,7 +121,7 @@ class Pfadi_CPT {
 
 		register_post_type( 'announcement', $args_announcement );
 
-		// Register Taxonomy for Units (shared)
+		// Register Taxonomy for Units (shared).
 		register_taxonomy_for_object_type( 'activity_unit', 'announcement' );
 
 		if ( get_option( 'pfadi_flush_rewrite_rules' ) ) {
@@ -117,13 +129,13 @@ class Pfadi_CPT {
 			delete_option( 'pfadi_flush_rewrite_rules' );
 		}
 
-		// Admin Columns
+		// Admin Columns.
 		add_filter( 'manage_activity_posts_columns', array( $this, 'add_activity_columns' ) );
 		add_action( 'manage_activity_posts_custom_column', array( $this, 'render_activity_columns' ), 10, 2 );
 		add_filter( 'manage_edit_activity_sortable_columns', array( $this, 'sortable_activity_columns' ) );
 		add_action( 'pre_get_posts', array( $this, 'sort_activity_by_date' ) );
 
-		// Bulk Actions
+		// Bulk Actions.
 		add_filter( 'bulk_actions-edit-activity', array( $this, 'register_bulk_actions' ) );
 		add_filter( 'bulk_actions-edit-announcement', array( $this, 'register_bulk_actions' ) );
 		add_filter( 'handle_bulk_actions-edit-activity', array( $this, 'handle_bulk_actions' ), 10, 3 );
@@ -131,6 +143,12 @@ class Pfadi_CPT {
 		add_action( 'admin_notices', array( $this, 'bulk_action_admin_notice' ) );
 	}
 
+	/**
+	 * Register bulk actions for the activity and announcement post types.
+	 *
+	 * @param array $bulk_actions The existing bulk actions.
+	 * @return array The modified bulk actions.
+	 */
 	public function register_bulk_actions( $bulk_actions ) {
 		if ( current_user_can( 'publish_posts' ) ) {
 			$bulk_actions['pfadi_resend_email'] = __( 'E-Mail erneut senden', 'wp-pfadi-manager' );
@@ -138,6 +156,14 @@ class Pfadi_CPT {
 		return $bulk_actions;
 	}
 
+	/**
+	 * Handle bulk actions.
+	 *
+	 * @param string $redirect_to The redirect URL.
+	 * @param string $action      The action name.
+	 * @param array  $post_ids    The post IDs.
+	 * @return string The modified redirect URL.
+	 */
 	public function handle_bulk_actions( $redirect_to, $action, $post_ids ) {
 		if ( 'pfadi_resend_email' !== $action ) {
 			return $redirect_to;
@@ -151,7 +177,7 @@ class Pfadi_CPT {
 		$mailer    = new Pfadi_Mailer();
 
 		foreach ( $post_ids as $post_id ) {
-			// Verify post type just in case
+			// Verify post type just in case.
 			$post = get_post( $post_id );
 			if ( 'activity' === $post->post_type || 'announcement' === $post->post_type ) {
 				// We call send_newsletter_by_id which triggers the mailer
@@ -174,16 +200,25 @@ class Pfadi_CPT {
 		return $redirect_to;
 	}
 
+	/**
+	 * Display admin notice after bulk action.
+	 */
 	public function bulk_action_admin_notice() {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		if ( ! empty( $_REQUEST['pfadi_resent_emails'] ) ) {
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			$count = intval( $_REQUEST['pfadi_resent_emails'] );
 			printf(
 				'<div id="message" class="updated notice is-dismissible"><p>%s</p></div>',
+				// translators: %s: Number of emails resent.
 				sprintf( _n( '%s E-Mail wurde erneut versendet.', '%s E-Mails wurden erneut versendet.', $count, 'wp-pfadi-manager' ), $count )
 			);
 		}
 	}
 
+	/**
+	 * Register the activity unit taxonomy.
+	 */
 	public function register_taxonomy() {
 		$labels = array(
 			'name'                       => _x( 'Stufen', 'Taxonomy General Name', 'wp-pfadi-manager' ),
@@ -219,7 +254,7 @@ class Pfadi_CPT {
 		);
 		register_taxonomy( 'activity_unit', array( 'activity' ), $args );
 
-		// Register default terms if they don't exist
+		// Register default terms if they don't exist.
 		if ( ! term_exists( 'Biber', 'activity_unit' ) ) {
 			wp_insert_term( 'Biber', 'activity_unit' );
 		}
@@ -240,11 +275,23 @@ class Pfadi_CPT {
 		}
 	}
 
+	/**
+	 * Add custom columns to the activity list table.
+	 *
+	 * @param array $columns The existing columns.
+	 * @return array The modified columns.
+	 */
 	public function add_activity_columns( $columns ) {
 		$columns['activity_date'] = __( 'Datum', 'wp-pfadi-manager' );
 		return $columns;
 	}
 
+	/**
+	 * Render the content of custom columns.
+	 *
+	 * @param string $column  The column name.
+	 * @param int    $post_id The post ID.
+	 */
 	public function render_activity_columns( $column, $post_id ) {
 		if ( 'activity_date' === $column ) {
 			$start = get_post_meta( $post_id, '_pfadi_start_time', true );
@@ -256,11 +303,22 @@ class Pfadi_CPT {
 		}
 	}
 
+	/**
+	 * Make custom columns sortable.
+	 *
+	 * @param array $columns The sortable columns.
+	 * @return array The modified sortable columns.
+	 */
 	public function sortable_activity_columns( $columns ) {
 		$columns['activity_date'] = 'activity_date';
 		return $columns;
 	}
 
+	/**
+	 * Sort activities by custom date column.
+	 *
+	 * @param WP_Query $query The query object.
+	 */
 	public function sort_activity_by_date( $query ) {
 		if ( ! is_admin() || ! $query->is_main_query() ) {
 			return;

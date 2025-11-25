@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Settings page functionality.
  *
@@ -423,67 +422,67 @@ class Pfadi_Settings {
 		<div class="wrap">
 			<h1><?php echo esc_html( get_admin_page_title() ); ?></h1>
 			
-			<nav class="nav-tab-wrapper">
-				<a href="?post_type=activity&page=pfadi_settings&tab=info" class="nav-tab <?php echo 'info' === $active_tab ? 'nav-tab-active' : ''; ?>"><?php _e( 'Hilfe & Info', 'wp-pfadi-manager' ); ?></a>
-				<a href="?post_type=activity&page=pfadi_settings&tab=general" class="nav-tab <?php echo 'general' === $active_tab ? 'nav-tab-active' : ''; ?>"><?php _e( 'Allgemein', 'wp-pfadi-manager' ); ?></a>
-				<a href="?post_type=activity&page=pfadi_settings&tab=email" class="nav-tab <?php echo 'email' === $active_tab ? 'nav-tab-active' : ''; ?>"><?php _e( 'E-Mail', 'wp-pfadi-manager' ); ?></a>
-				<a href="?post_type=activity&page=pfadi_settings&tab=units" class="nav-tab <?php echo 'units' === $active_tab ? 'nav-tab-active' : ''; ?>"><?php _e( 'Stufen-Einstellungen', 'wp-pfadi-manager' ); ?></a>
-				<a href="?post_type=activity&page=pfadi_settings&tab=logs" class="nav-tab <?php echo 'logs' === $active_tab ? 'nav-tab-active' : ''; ?>"><?php _e( 'Logs', 'wp-pfadi-manager' ); ?></a>
+						<nav class="nav-tab-wrapper">
+				<a href="?post_type=activity&page=pfadi_settings&tab=info" class="nav-tab <?php echo 'info' === $active_tab ? 'nav-tab-active' : ''; ?>"><?php esc_html_e( 'Hilfe & Info', 'wp-pfadi-manager' ); ?></a>
+				<a href="?post_type=activity&page=pfadi_settings&tab=general" class="nav-tab <?php echo 'general' === $active_tab ? 'nav-tab-active' : ''; ?>"><?php esc_html_e( 'Allgemein', 'wp-pfadi-manager' ); ?></a>
+				<a href="?post_type=activity&page=pfadi_settings&tab=email" class="nav-tab <?php echo 'email' === $active_tab ? 'nav-tab-active' : ''; ?>"><?php esc_html_e( 'E-Mail', 'wp-pfadi-manager' ); ?></a>
+				<a href="?post_type=activity&page=pfadi_settings&tab=units" class="nav-tab <?php echo 'units' === $active_tab ? 'nav-tab-active' : ''; ?>"><?php esc_html_e( 'Stufen-Einstellungen', 'wp-pfadi-manager' ); ?></a>
+				<a href="?post_type=activity&page=pfadi_settings&tab=logs" class="nav-tab <?php echo 'logs' === $active_tab ? 'nav-tab-active' : ''; ?>"><?php esc_html_e( 'Logs', 'wp-pfadi-manager' ); ?></a>
 			</nav>
 
 			<div class="tab-content">
 				<?php if ( 'info' === $active_tab ) : ?>
 					<div class="card" style="max-width: 800px; margin-top: 20px;">
-						<h2><?php _e( 'Shortcodes', 'wp-pfadi-manager' ); ?></h2>
-						<p><?php _e( 'Folgende Shortcodes stehen zur Verfügung:', 'wp-pfadi-manager' ); ?></p>
+						<h2><?php esc_html_e( 'Shortcodes', 'wp-pfadi-manager' ); ?></h2>
+						<p><?php esc_html_e( 'Folgende Shortcodes stehen zur Verfügung:', 'wp-pfadi-manager' ); ?></p>
 						
-						<h3>1. <?php _e( 'Aktivitäten-Board', 'wp-pfadi-manager' ); ?></h3>
+						<h3>1. <?php esc_html_e( 'Aktivitäten-Board', 'wp-pfadi-manager' ); ?></h3>
 						<code>[pfadi_board]</code>
-						<p><?php _e( 'Zeigt die aktuellen Aktivitäten an.', 'wp-pfadi-manager' ); ?></p>
-						<p><strong><?php _e( 'Parameter:', 'wp-pfadi-manager' ); ?></strong></p>
+						<p><?php esc_html_e( 'Zeigt die aktuellen Aktivitäten an.', 'wp-pfadi-manager' ); ?></p>
+						<p><strong><?php esc_html_e( 'Parameter:', 'wp-pfadi-manager' ); ?></strong></p>
 						<ul>
-							<li><code>view="cards"</code> (<?php _e( 'Standard', 'wp-pfadi-manager' ); ?>) - <?php _e( 'Zeigt Kacheln an.', 'wp-pfadi-manager' ); ?></li>
-							<li><code>view="table"</code> - <?php _e( 'Zeigt eine Tabelle an.', 'wp-pfadi-manager' ); ?></li>
-							<li><code>view="list"</code> - <?php _e( 'Zeigt eine Liste mit seitlichen Tabs an.', 'wp-pfadi-manager' ); ?></li>
-							<li><code>unit="slug"</code> (<?php _e( 'Optional', 'wp-pfadi-manager' ); ?>) - <?php _e( 'Filtert nach einer bestimmten Stufe (z.B. biber, wolfe, pfadis).', 'wp-pfadi-manager' ); ?></li>
+							<li><code>view="cards"</code> (<?php esc_html_e( 'Standard', 'wp-pfadi-manager' ); ?>) - <?php esc_html_e( 'Zeigt Kacheln an.', 'wp-pfadi-manager' ); ?></li>
+							<li><code>view="table"</code> - <?php esc_html_e( 'Zeigt eine Tabelle an.', 'wp-pfadi-manager' ); ?></li>
+							<li><code>view="list"</code> - <?php esc_html_e( 'Zeigt eine Liste mit seitlichen Tabs an.', 'wp-pfadi-manager' ); ?></li>
+							<li><code>unit="slug"</code> (<?php esc_html_e( 'Optional', 'wp-pfadi-manager' ); ?>) - <?php esc_html_e( 'Filtert nach einer bestimmten Stufe (z.B. biber, wolfe, pfadis).', 'wp-pfadi-manager' ); ?></li>
 						</ul>
-						<p><em><?php _e( 'Beispiel:', 'wp-pfadi-manager' ); ?></em> <code>[pfadi_board view="list"]</code></p>
+						<p><em><?php esc_html_e( 'Beispiel:', 'wp-pfadi-manager' ); ?></em> <code>[pfadi_board view="list"]</code></p>
 
-						<h3>2. <?php _e( 'Abo-Formular', 'wp-pfadi-manager' ); ?></h3>
+						<h3>2. <?php esc_html_e( 'Abo-Formular', 'wp-pfadi-manager' ); ?></h3>
 						<code>[pfadi_subscribe]</code>
-						<p><?php _e( 'Zeigt das Formular zum Abonnieren des Newsletters an.', 'wp-pfadi-manager' ); ?></p>
+						<p><?php esc_html_e( 'Zeigt das Formular zum Abonnieren des Newsletters an.', 'wp-pfadi-manager' ); ?></p>
 
-						<h3>3. <?php _e( 'Mitteilungen', 'wp-pfadi-manager' ); ?></h3>
+						<h3>3. <?php esc_html_e( 'Mitteilungen', 'wp-pfadi-manager' ); ?></h3>
 						<code>[pfadi_news]</code>
-						<p><?php _e( 'Zeigt aktuelle Mitteilungen an.', 'wp-pfadi-manager' ); ?></p>
-						<p><strong><?php _e( 'Parameter:', 'wp-pfadi-manager' ); ?></strong></p>
+						<p><?php esc_html_e( 'Zeigt aktuelle Mitteilungen an.', 'wp-pfadi-manager' ); ?></p>
+						<p><strong><?php esc_html_e( 'Parameter:', 'wp-pfadi-manager' ); ?></strong></p>
 						<ul>
-							<li><code>view="carousel"</code> (<?php _e( 'Standard', 'wp-pfadi-manager' ); ?>) - <?php _e( 'Zeigt ein Karussell aller aktuellen Mitteilungen.', 'wp-pfadi-manager' ); ?></li>
-							<li><code>view="banner"</code> - <?php _e( 'Zeigt die neuste Mitteilung als Banner an.', 'wp-pfadi-manager' ); ?></li>
-							<li><code>limit="-1"</code> (<?php _e( 'Optional', 'wp-pfadi-manager' ); ?>) - <?php _e( 'Anzahl der anzuzeigenden Mitteilungen (Standard: alle).', 'wp-pfadi-manager' ); ?></li>
+							<li><code>view="carousel"</code> (<?php esc_html_e( 'Standard', 'wp-pfadi-manager' ); ?>) - <?php esc_html_e( 'Zeigt ein Karussell aller aktuellen Mitteilungen.', 'wp-pfadi-manager' ); ?></li>
+							<li><code>view="banner"</code> - <?php esc_html_e( 'Zeigt die neuste Mitteilung als Banner an.', 'wp-pfadi-manager' ); ?></li>
+							<li><code>limit="-1"</code> (<?php esc_html_e( 'Optional', 'wp-pfadi-manager' ); ?>) - <?php esc_html_e( 'Anzahl der anzuzeigenden Mitteilungen (Standard: alle).', 'wp-pfadi-manager' ); ?></li>
 						</ul>
-						<p><em><?php _e( 'Beispiel:', 'wp-pfadi-manager' ); ?></em> <code>[pfadi_news view="banner"]</code></p>
+						<p><em><?php esc_html_e( 'Beispiel:', 'wp-pfadi-manager' ); ?></em> <code>[pfadi_news view="banner"]</code></p>
 					</div>
 
 					<div class="card" style="max-width: 800px; margin-top: 20px;">
-						<h2><?php _e( 'Technische Informationen', 'wp-pfadi-manager' ); ?></h2>
-						<p><strong><?php _e( 'Plugin Version:', 'wp-pfadi-manager' ); ?></strong> <?php echo esc_html( PFADI_MANAGER_VERSION ); ?></p>
-						<p><strong><?php _e( 'Datenbank-Tabelle:', 'wp-pfadi-manager' ); ?></strong> 
+						<h2><?php esc_html_e( 'Technische Informationen', 'wp-pfadi-manager' ); ?></h2>
+						<p><strong><?php esc_html_e( 'Plugin Version:', 'wp-pfadi-manager' ); ?></strong> <?php echo esc_html( PFADI_MANAGER_VERSION ); ?></p>
+						<p><strong><?php esc_html_e( 'Datenbank-Tabelle:', 'wp-pfadi-manager' ); ?></strong> 
 						<?php
 						global $wpdb;
 						echo esc_html( $wpdb->prefix . 'pfadi_subscribers' );
 						?>
 						</p>
-						<p><strong><?php _e( 'Cronjobs:', 'wp-pfadi-manager' ); ?></strong></p>
+						<p><strong><?php esc_html_e( 'Cronjobs:', 'wp-pfadi-manager' ); ?></strong></p>
 						<ul>
-							<li><?php _e( 'Täglicher Cleanup (alte Aktivitäten archivieren)', 'wp-pfadi-manager' ); ?></li>
+							<li><?php esc_html_e( 'Täglicher Cleanup (alte Aktivitäten archivieren)', 'wp-pfadi-manager' ); ?></li>
 						</ul>
 					</div>
 					</div>
 				<?php elseif ( 'logs' === $active_tab ) : ?>
 					<div class="card" style="max-width: 800px; margin-top: 20px;">
-						<h2><?php _e( 'System Logs', 'wp-pfadi-manager' ); ?></h2>
-						<p><?php _e( 'Hier sehen Sie die letzten 100 Log-Einträge des Plugins.', 'wp-pfadi-manager' ); ?></p>
+						<h2><?php esc_html_e( 'System Logs', 'wp-pfadi-manager' ); ?></h2>
+						<p><?php esc_html_e( 'Hier sehen Sie die letzten 100 Log-Einträge des Plugins.', 'wp-pfadi-manager' ); ?></p>
 						
 						<div class="log-viewer" style="background: #f0f0f1; padding: 10px; border: 1px solid #ccc; height: 400px; overflow-y: scroll; font-family: monospace; white-space: pre-wrap; margin-bottom: 20px;">
 							<?php
@@ -499,8 +498,8 @@ class Pfadi_Settings {
 						</div>
 
 						<div class="log-actions">
-							<a href="<?php echo esc_url( admin_url( 'admin-post.php?action=pfadi_download_log' ) ); ?>" class="button button-secondary"><?php _e( 'Download Log', 'wp-pfadi-manager' ); ?></a>
-							<a href="<?php echo esc_url( admin_url( 'admin-post.php?action=pfadi_clear_log' ) ); ?>" class="button button-link-delete" onclick="return confirm('<?php esc_attr_e( 'Sind Sie sicher?', 'wp-pfadi-manager' ); ?>');"><?php _e( 'Logs löschen', 'wp-pfadi-manager' ); ?></a>
+							<a href="<?php echo esc_url( admin_url( 'admin-post.php?action=pfadi_download_log' ) ); ?>" class="button button-secondary"><?php esc_html_e( 'Download Log', 'wp-pfadi-manager' ); ?></a>
+							<a href="<?php echo esc_url( admin_url( 'admin-post.php?action=pfadi_clear_log' ) ); ?>" class="button button-link-delete" onclick="return confirm('<?php esc_attr_e( 'Sind Sie sicher?', 'wp-pfadi-manager' ); ?>');"><?php esc_html_e( 'Logs löschen', 'wp-pfadi-manager' ); ?></a>
 						</div>
 					</div>
 				<?php else : ?>

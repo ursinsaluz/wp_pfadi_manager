@@ -1,7 +1,18 @@
 <?php
+/**
+ * Meta boxes functionality.
+ *
+ * @package PfadiManager
+ */
 
+/**
+ * Handles the registration and saving of meta boxes.
+ */
 class Pfadi_Metaboxes {
 
+	/**
+	 * Initialize the class.
+	 */
 	public function __construct() {
 		add_action( 'add_meta_boxes', array( $this, 'add_meta_boxes' ) );
 		add_action( 'save_post', array( $this, 'save_meta_boxes' ) );
@@ -9,14 +20,19 @@ class Pfadi_Metaboxes {
 		add_action( 'edit_form_after_title', array( $this, 'render_validity_fields' ) );
 	}
 
+	/**
+	 * Enqueue admin scripts.
+	 *
+	 * @param string $hook The current admin page.
+	 */
 	public function enqueue_admin_scripts( $hook ) {
 		global $post;
 
-		if ( $hook == 'post-new.php' || $hook == 'post.php' ) {
+		if ( 'post-new.php' === $hook || 'post.php' === $hook ) {
 			if ( 'activity' === $post->post_type ) {
 				wp_enqueue_script( 'pfadi-admin-js', PFADI_MANAGER_URL . 'assets/js/admin.js', array( 'jquery' ), '1.0.0', true );
 
-				// Pass settings to JS
+				// Pass settings to JS.
 				$units    = array( 'Biber', 'Wölfe', 'Pfadis', 'Pios', 'Rover', 'Abteilung' );
 				$settings = array();
 				foreach ( $units as $unit ) {
@@ -33,6 +49,9 @@ class Pfadi_Metaboxes {
 		}
 	}
 
+	/**
+	 * Add meta boxes.
+	 */
 	public function add_meta_boxes() {
 		add_meta_box(
 			'pfadi_activity_details',
@@ -52,14 +71,14 @@ class Pfadi_Metaboxes {
 			'high'
 		);
 
-		// Move 'activity_unit' taxonomy box to main column, above details
+		// Move 'activity_unit' taxonomy box to main column, above details.
 		remove_meta_box( 'activity_unitdiv', 'activity', 'side' );
 		remove_meta_box( 'activity_unitdiv', 'announcement', 'side' );
 
 		add_meta_box(
 			'activity_unitdiv',
 			__( 'Stufen', 'wp-pfadi-manager' ),
-			'post_categories_meta_box', // Standard WP callback for hierarchical taxonomies
+			'post_categories_meta_box', // Standard WP callback for hierarchical taxonomies.
 			'activity',
 			'normal',
 			'high',
@@ -77,6 +96,11 @@ class Pfadi_Metaboxes {
 		);
 	}
 
+	/**
+	 * Render validity fields for announcements.
+	 *
+	 * @param WP_Post $post The post object.
+	 */
 	public function render_validity_fields( $post ) {
 		if ( 'announcement' !== $post->post_type ) {
 			return;
@@ -86,22 +110,22 @@ class Pfadi_Metaboxes {
 		$end_time   = get_post_meta( $post->ID, '_pfadi_end_time', true );
 
 		if ( empty( $start_time ) && empty( $end_time ) ) {
-			$now        = current_time( 'timestamp' );
-			$start_time = date( 'Y-m-d\TH:i', $now );
-			$end_time   = date( 'Y-m-d\TH:i', strtotime( '+2 weeks', $now ) );
+			$now        = time();
+			$start_time = gmdate( 'Y-m-d\TH:i', $now );
+			$end_time   = gmdate( 'Y-m-d\TH:i', strtotime( '+2 weeks', $now ) );
 		} else {
 			$start_time = str_replace( ' ', 'T', $start_time );
 			$end_time   = str_replace( ' ', 'T', $end_time );
 		}
 		?>
 		<div class="postbox" style="margin-top: 20px; margin-bottom: 20px;">
-			<div class="postbox-header"><h2 class="hndle"><?php _e( 'Gültigkeitsbereich', 'wp-pfadi-manager' ); ?></h2></div>
+			<div class="postbox-header"><h2 class="hndle"><?php esc_html_e( 'Gültigkeitsbereich', 'wp-pfadi-manager' ); ?></h2></div>
 			<div class="inside">
 				<p>
-					<label for="pfadi_start_time"><?php _e( 'Gültig von:', 'wp-pfadi-manager' ); ?></label>
+					<label for="pfadi_start_time"><?php esc_html_e( 'Gültig von:', 'wp-pfadi-manager' ); ?></label>
 					<input type="datetime-local" id="pfadi_start_time" name="pfadi_start_time" value="<?php echo esc_attr( $start_time ); ?>">
 					
-					<label for="pfadi_end_time" style="margin-left: 20px;"><?php _e( 'Gültig bis:', 'wp-pfadi-manager' ); ?></label>
+					<label for="pfadi_end_time" style="margin-left: 20px;"><?php esc_html_e( 'Gültig bis:', 'wp-pfadi-manager' ); ?></label>
 					<input type="datetime-local" id="pfadi_end_time" name="pfadi_end_time" value="<?php echo esc_attr( $end_time ); ?>">
 				</p>
 			</div>
@@ -109,6 +133,11 @@ class Pfadi_Metaboxes {
 		<?php
 	}
 
+	/**
+	 * Render meta box content.
+	 *
+	 * @param WP_Post $post The post object.
+	 */
 	public function render_meta_box( $post ) {
 		wp_nonce_field( 'pfadi_save_meta_box_data', 'pfadi_meta_box_nonce' );
 
@@ -121,7 +150,7 @@ class Pfadi_Metaboxes {
 		$leaders          = get_post_meta( $post->ID, '_pfadi_leaders', true );
 		$send_immediately = get_post_meta( $post->ID, '_pfadi_send_immediately', true );
 
-		// Default values for new posts (Only for Activity now, Announcement handled in render_validity_fields)
+		// Default values for new posts (Only for Activity now, Announcement handled in render_validity_fields).
 		if ( 'activity' === $post->post_type && empty( $start_time ) && empty( $end_time ) ) {
 			$next_saturday = new DateTime( 'next saturday 14:00' );
 			$start_time    = $next_saturday->format( 'Y-m-d\TH:i' );
@@ -149,23 +178,23 @@ class Pfadi_Metaboxes {
 			<input type="datetime-local" id="pfadi_end_time" name="pfadi_end_time" value="<?php echo esc_attr( $end_time ); ?>" style="width:100%">
 		</p>
 		<p>
-			<label for="pfadi_location"><?php _e( 'Ort:', 'wp-pfadi-manager' ); ?></label>
+			<label for="pfadi_location"><?php esc_html_e( 'Ort:', 'wp-pfadi-manager' ); ?></label>
 			<input type="text" id="pfadi_location" name="pfadi_location" value="<?php echo esc_attr( $location ); ?>" style="width:100%">
 		</p>
 		<p>
-			<label for="pfadi_bring"><?php _e( 'Mitnehmen:', 'wp-pfadi-manager' ); ?></label>
+			<label for="pfadi_bring"><?php esc_html_e( 'Mitnehmen:', 'wp-pfadi-manager' ); ?></label>
 			<textarea id="pfadi_bring" name="pfadi_bring" style="width:100%" rows="4"><?php echo esc_textarea( $bring ); ?></textarea>
 		</p>
 		<p>
-			<label for="pfadi_special"><?php _e( 'Besonderes:', 'wp-pfadi-manager' ); ?></label>
+			<label for="pfadi_special"><?php esc_html_e( 'Besonderes:', 'wp-pfadi-manager' ); ?></label>
 			<textarea id="pfadi_special" name="pfadi_special" style="width:100%" rows="2"><?php echo esc_textarea( $special ); ?></textarea>
 		</p>
 		<p>
-			<label for="pfadi_greeting"><?php _e( 'Gruss:', 'wp-pfadi-manager' ); ?></label>
+			<label for="pfadi_greeting"><?php esc_html_e( 'Gruss:', 'wp-pfadi-manager' ); ?></label>
 			<input type="text" id="pfadi_greeting" name="pfadi_greeting" value="<?php echo esc_attr( $greeting ); ?>" style="width:100%">
 		</p>
 		<p>
-			<label for="pfadi_leaders"><?php _e( 'Leitung:', 'wp-pfadi-manager' ); ?></label>
+			<label for="pfadi_leaders"><?php esc_html_e( 'Leitung:', 'wp-pfadi-manager' ); ?></label>
 			<input type="text" id="pfadi_leaders" name="pfadi_leaders" value="<?php echo esc_attr( $leaders ); ?>" style="width:100%">
 		</p>
 
@@ -175,18 +204,23 @@ class Pfadi_Metaboxes {
 		<p>
 			<label>
 				<input type="checkbox" name="pfadi_send_immediately" value="1" <?php checked( $send_immediately, '1' ); ?>>
-				<?php _e( 'Sofort versenden (ignoriert Zeitplan)', 'wp-pfadi-manager' ); ?>
+				<?php esc_html_e( 'Sofort versenden (ignoriert Zeitplan)', 'wp-pfadi-manager' ); ?>
 			</label>
 		</p>
 		<?php endif; ?>
 		<?php
 	}
 
+	/**
+	 * Save meta box data.
+	 *
+	 * @param int $post_id The post ID.
+	 */
 	public function save_meta_boxes( $post_id ) {
 		if ( ! isset( $_POST['pfadi_meta_box_nonce'] ) ) {
 			return;
 		}
-		if ( ! wp_verify_nonce( $_POST['pfadi_meta_box_nonce'], 'pfadi_save_meta_box_data' ) ) {
+		if ( ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['pfadi_meta_box_nonce'] ) ), 'pfadi_save_meta_box_data' ) ) {
 			return;
 		}
 		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
@@ -200,8 +234,8 @@ class Pfadi_Metaboxes {
 
 		foreach ( $fields as $field ) {
 			if ( isset( $_POST[ $field ] ) ) {
-				$value = sanitize_text_field( $_POST[ $field ] );
-				// Convert date format from T to space for DB
+				$value = sanitize_text_field( wp_unslash( $_POST[ $field ] ) );
+				// Convert date format from T to space for DB.
 				if ( 'pfadi_start_time' === $field || 'pfadi_end_time' === $field ) {
 					$value = str_replace( 'T', ' ', $value );
 				}
