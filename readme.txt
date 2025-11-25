@@ -3,7 +3,7 @@ Contributors: schlingel
 Tags: pfadi, activities, manager, scout
 Requires at least: 6.0
 Tested up to: 6.4
-Stable tag: 1.2.1
+Stable tag: 1.2.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -42,6 +42,9 @@ Features:
 *   `[pfadi_subscribe]`
 
 == Changelog ==
+
+= 1.2.2 =
+*   FIX: Build-Prozess und Composer-Abhängigkeiten korrigiert (PHP 8.0 Kompatibilität).
 
 = 1.2.1 =
 *   NEU: Modernisierung des Workflows (Composer, NPM, Linting).
