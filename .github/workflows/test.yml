@@ -50,3 +50,26 @@ jobs:
 
     - name: Run PHPUnit
       run: vendor/bin/phpunit
+
+    - name: Build Plugin ZIP
+      run: |
+        # Install production dependencies only
+        composer install --no-dev --optimize-autoloader
+        
+        # Create a temporary directory for the build
+        mkdir build
+        mkdir build/wp-pfadi-manager
+        
+        # Copy files to the build directory
+        rsync -av --exclude='build' --exclude='.git' --exclude='.github' --exclude='tests' --exclude='bin' --exclude='node_modules' --exclude='docker-compose.yml' --exclude='CONTRIBUTING.md' --exclude='.stylelintignore' --exclude='.gitignore' --exclude='.editorconfig' . build/wp-pfadi-manager/
+        
+        # Create ZIP file
+        cd build
+        zip -r ../wp-pfadi-manager.zip wp-pfadi-manager
+        cd ..
+
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: wp-pfadi-manager-zip
+        path: wp-pfadi-manager.zip

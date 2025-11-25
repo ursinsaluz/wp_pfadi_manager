@@ -1,6 +1,6 @@
 {
   "name": "wp-pfadi-manager",
-  "version": "1.2.2",
+  "version": "1.3.0",
   "description": "Digitalisiert und automatisiert den Informationsfluss einer Pfadi-Abteilung.",
   "main": "index.js",
   "scripts": {
