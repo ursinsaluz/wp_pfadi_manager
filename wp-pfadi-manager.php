@@ -61,9 +61,15 @@ if ( defined( 'PFADI_MANAGER_VERSION' ) ) {
 /**
  * Current plugin version.
  */
-define( 'PFADI_MANAGER_VERSION', '1.4.0' );
-define( 'PFADI_MANAGER_PATH', plugin_dir_path( __FILE__ ) );
-define( 'PFADI_MANAGER_URL', plugin_dir_url( __FILE__ ) );
+if ( ! defined( 'PFADI_MANAGER_VERSION' ) ) {
+	define( 'PFADI_MANAGER_VERSION', '1.4.0' );
+}
+if ( ! defined( 'PFADI_MANAGER_PATH' ) ) {
+	define( 'PFADI_MANAGER_PATH', plugin_dir_path( __FILE__ ) );
+}
+if ( ! defined( 'PFADI_MANAGER_URL' ) ) {
+	define( 'PFADI_MANAGER_URL', plugin_dir_url( __FILE__ ) );
+}
 
 /**
  * The code that runs during plugin activation.

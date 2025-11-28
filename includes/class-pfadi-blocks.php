@@ -57,49 +57,55 @@ class Pfadi_Blocks {
 		);
 
 		// Register Blocks.
-		register_block_type(
-			'pfadi/board',
-			array(
-				'editor_script'   => 'pfadi-blocks-js',
-				'render_callback' => array( $this, 'render_board_block' ),
-				'attributes'      => array(
-					'view' => array(
-						'type'    => 'string',
-						'default' => 'cards',
+		if ( ! WP_Block_Type_Registry::get_instance()->is_registered( 'pfadi/board' ) ) {
+			register_block_type(
+				'pfadi/board',
+				array(
+					'editor_script'   => 'pfadi-blocks-js',
+					'render_callback' => array( $this, 'render_board_block' ),
+					'attributes'      => array(
+						'view' => array(
+							'type'    => 'string',
+							'default' => 'cards',
+						),
+						'unit' => array(
+							'type'    => 'string',
+							'default' => '',
+						),
 					),
-					'unit' => array(
-						'type'    => 'string',
-						'default' => '',
-					),
-				),
-			)
-		);
+				)
+			);
+		}
 
-		register_block_type(
-			'pfadi/subscribe',
-			array(
-				'editor_script'   => 'pfadi-blocks-js',
-				'render_callback' => array( $this, 'render_subscribe_block' ),
-			)
-		);
+		if ( ! WP_Block_Type_Registry::get_instance()->is_registered( 'pfadi/subscribe' ) ) {
+			register_block_type(
+				'pfadi/subscribe',
+				array(
+					'editor_script'   => 'pfadi-blocks-js',
+					'render_callback' => array( $this, 'render_subscribe_block' ),
+				)
+			);
+		}
 
-		register_block_type(
-			'pfadi/news',
-			array(
-				'editor_script'   => 'pfadi-blocks-js',
-				'render_callback' => array( $this, 'render_news_block' ),
-				'attributes'      => array(
-					'view'  => array(
-						'type'    => 'string',
-						'default' => 'carousel',
+		if ( ! WP_Block_Type_Registry::get_instance()->is_registered( 'pfadi/news' ) ) {
+			register_block_type(
+				'pfadi/news',
+				array(
+					'editor_script'   => 'pfadi-blocks-js',
+					'render_callback' => array( $this, 'render_news_block' ),
+					'attributes'      => array(
+						'view'  => array(
+							'type'    => 'string',
+							'default' => 'carousel',
+						),
+						'limit' => array(
+							'type'    => 'number',
+							'default' => -1,
+						),
 					),
-					'limit' => array(
-						'type'    => 'number',
-						'default' => -1,
-					),
-				),
-			)
-		);
+				)
+			);
+		}
 	}
 
 	/**
