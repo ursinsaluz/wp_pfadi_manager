@@ -53,6 +53,11 @@ if ( ! defined( 'WPINC' ) ) {
 	die;
 }
 
+// Prevent double loading.
+if ( defined( 'PFADI_MANAGER_VERSION' ) ) {
+	return;
+}
+
 /**
  * Current plugin version.
  */
@@ -85,7 +90,7 @@ register_deactivation_hook( __FILE__, 'pfadi_manager_deactivate' );
  * The core plugin class that is used to define internationalization,
  * admin-specific hooks, and public-facing site hooks.
  */
-require plugin_dir_path( __FILE__ ) . 'includes/class-pfadi-loader.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/class-pfadi-loader.php';
 
 /**
  * Begins execution of the plugin.
