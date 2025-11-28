@@ -11,7 +11,10 @@
     "format:css": "stylelint '**/*.css' '**/*.scss' --fix",
     "format:php": "composer run format",
     "build": "wp-scripts build",
-    "test": "vendor/bin/phpunit"
+    "test": "vendor/bin/phpunit",
+    "env:start": "wp-env start",
+    "env:stop": "wp-env stop",
+    "test:e2e": "wp-scripts test-e2e"
   },
   "repository": {
     "type": "git",
@@ -29,6 +32,7 @@
   },
   "homepage": "https://github.com/ursinsaluz/wp_pfadi_manager#readme",
   "devDependencies": {
+    "@wordpress/env": "^10.36.0",
     "@wordpress/eslint-plugin": "^22.21.0",
     "@wordpress/scripts": "^31.0.0",
     "@wordpress/stylelint-config": "^23.27.0",
