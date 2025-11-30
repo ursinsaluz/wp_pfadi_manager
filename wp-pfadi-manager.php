@@ -2,11 +2,14 @@
 /**
  * Plugin Name: Pfadi-Aktivitäten Manager
  * Description: Digitalisiert und automatisiert den Informationsfluss einer Pfadi-Abteilung.
- * Version:           1.4.0
+ * Version:           1.4.1
  * Author: Ursin Saluz v/o Schlingel mit Antigravity
  * Text Domain: wp-pfadi-manager
  *
  * Changelog:
+ * 1.4.1
+ * - FIX: Version mismatch causing constant redefinition warnings.
+ *
  * 1.4.0
  * - NEU: Refactor admin JS to load and overwrite unit-specific fields.
  * - FIX: Restore missing activator/deactivation classes.
@@ -62,7 +65,7 @@ if ( defined( 'PFADI_MANAGER_VERSION' ) ) {
  * Current plugin version.
  */
 if ( ! defined( 'PFADI_MANAGER_VERSION' ) ) {
-	define( 'PFADI_MANAGER_VERSION', '1.4.0' );
+	define( 'PFADI_MANAGER_VERSION', '1.4.1' );
 }
 if ( ! defined( 'PFADI_MANAGER_PATH' ) ) {
 	define( 'PFADI_MANAGER_PATH', plugin_dir_path( __FILE__ ) );
